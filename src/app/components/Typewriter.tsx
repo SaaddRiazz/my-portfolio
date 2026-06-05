@@ -81,7 +81,7 @@ export default function Typewriter({
           height: 1.35rem;             /* Locked to text scale proportions */
           background-color: #ffffff;   /* Pure white ensures perfect contrast on teal */
           margin-left: 6px;
-          vertical-align: -3px;        /* Displaces the element down to sit perfectly on the font baseline */
+          vertical-align: middle;
           animation: blink 0.9s infinite steps(2, start);
           box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Subtle glow effect */
         }
