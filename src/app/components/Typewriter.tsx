@@ -74,17 +74,23 @@ export default function Typewriter({
         .typewriter-sentence {
           white-space: pre-wrap;
         }
+        /* ===== Premium Block Style Typing Cursor ===== */
         .insert-cursor {
           display: inline-block;
-          width: 8px; 
-          height: 1.1em;
-          background-color: #e84057; 
-          margin-left: 4px;
-          vertical-align: middle;
-          animation: blink 0.8s infinite steps(2, start);
+          width: 3px;                  /* Thinned down slightly for a sharper look */
+          height: 1.35rem;             /* Locked to text scale proportions */
+          background-color: #ffffff;   /* Pure white ensures perfect contrast on teal */
+          margin-left: 6px;
+          vertical-align: -3px;        /* Displaces the element down to sit perfectly on the font baseline */
+          animation: blink 0.9s infinite steps(2, start);
+          box-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Subtle glow effect */
         }
+
+        /* Classic snappy hard-blink animation */
         @keyframes blink {
-          to { visibility: hidden; }
+          to {
+            visibility: hidden;
+          }
         }
       `}</style>
     </span>

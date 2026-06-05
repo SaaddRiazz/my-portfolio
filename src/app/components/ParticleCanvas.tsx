@@ -92,11 +92,11 @@ export default function ParticleCanvas() {
         if (p.y > height) p.y = 0;
       }
 
-      // Draw all particles as small dots
+      // 1. Draw all standard drifting background particles (Now Soft White)
       for (const p of particlesRef.current) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(100, 180, 255, ${p.opacity})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
         ctx.fill();
       }
 
@@ -145,7 +145,7 @@ export default function ParticleCanvas() {
 
       // Draw edges between connected particles
       const connectedIndices = Array.from(visited.keys());
-      const baseOpacity = 0.55;
+      const baseOpacity = 0.45; // Slightly reduced to keep line webs clean and elegant
 
       for (let idx = 0; idx < connectedIndices.length; idx++) {
         const i = connectedIndices[idx];
@@ -153,7 +153,7 @@ export default function ParticleCanvas() {
         const depthI = visited.get(i)!;
         const distI = Math.sqrt((pi.x - mx) ** 2 + (pi.y - my) ** 2);
 
-        // 1. Connection from mouse to this seed particle
+        // 2. Connection lines from mouse to seed particles (Now Glowing Cyan)
         if (distI < mouseConnectionRadius) {
           const edgeDepth = 1;
           const avgDist = distI / 2;
@@ -164,12 +164,12 @@ export default function ParticleCanvas() {
           ctx.beginPath();
           ctx.moveTo(mx, my);
           ctx.lineTo(pi.x, pi.y);
-          ctx.strokeStyle = `rgba(50, 140, 220, ${opacity})`;
+          ctx.strokeStyle = `rgba(0, 229, 255, ${opacity * 0.8})`; 
           ctx.lineWidth = Math.max(0.2, 0.85 - edgeDepth * 0.04);
           ctx.stroke();
         }
 
-        // 2. Internal connection to other connected particles
+        // 3. Web connection lines between internal nodes (Now Fluid Teal/Cyan)
         for (let jdx = idx + 1; jdx < connectedIndices.length; jdx++) {
           const j = connectedIndices[jdx];
           const pj = particlesRef.current[j];
@@ -191,31 +191,31 @@ export default function ParticleCanvas() {
             ctx.beginPath();
             ctx.moveTo(pi.x, pi.y);
             ctx.lineTo(pj.x, pj.y);
-            ctx.strokeStyle = `rgba(50, 140, 220, ${opacity})`;
+            ctx.strokeStyle = `rgba(0, 229, 255, ${opacity * 0.6})`;
             ctx.lineWidth = Math.max(0.2, 0.85 - edgeDepth * 0.04);
             ctx.stroke();
           }
         }
       }
 
-      // Brighten connected particles (glow effect)
+      // 4. Glow aura around connected active nodes (Now Clear Cyan Glow)
       for (const [idx, depth] of visited.entries()) {
         const p = particlesRef.current[idx];
         const dist = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2);
         const distFactor = Math.max(0, 1 - dist / maxRadius);
         const depthFactor = Math.max(0, 1 - depth / maxDepth);
-        const opacity = 0.45 * distFactor * depthFactor;
+        const opacity = 0.4 * distFactor * depthFactor;
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius + 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(100, 180, 255, ${opacity})`;
+        ctx.arc(p.x, p.y, p.radius + 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 229, 255, ${opacity})`;
         ctx.fill();
       }
 
-      // Draw mouse node
+      // 5. Draw the tiny main node directly under the mouse cursor (Bright White)
       ctx.beginPath();
       ctx.arc(mx, my, 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(100, 180, 255, 0.8)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.fill();
 
       animationRef.current = requestAnimationFrame(animate);
