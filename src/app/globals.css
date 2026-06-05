@@ -1,26 +1,220 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: #041f24;       /* Deep, rich dark teal base */
+  --color-foreground: #ffffff;
+  --color-accent: #00e5ff;          /* Luminous cyan */
+  --color-accent-light: #a7f3d0;
+  --color-surface: #0b373f;
+  --color-surface-light: #114b57;
+  --color-muted: #e0f2fe;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #041f24;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #041f24;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00e5ff;
+  border-radius: 4px;
+}
+
+/* ===== Hero Section with Ellipse Shape ===== */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #041f24; /* Base dark-shadow color anchored at top-left */
+  overflow: hidden;
+}
+
+/* ELLIPSE GENERATOR:
+  This creates a gigantic, smoothly blurred geometric ellipse sweeping from 
+  the center-right down off the bottom edge of the screen.
+*/
+.hero::before {
+  content: '';
+  position: absolute;
+  /* Massive dimensions to act as a wide structural sweep */
+  width: 140vw;
+  height: 100vh;
+  /* Placed down and to the right */
+  bottom: -30vh;
+  right: -30vw;
+  
+  /* Creates the physical mathematical Ellipse curve */
+  border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+  
+  /* Maps the internal gradient of the ellipse to fade softly towards the center-left */
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.75) 0%, rgba(0, 153, 168, 0.4) 60%, transparent 100%);
+  
+  /* Large hardware-accelerated blur to blend the edges smoothly into the dark base */
+  filter: blur(120px);
+  -webkit-filter: blur(120px);
+  z-index: 1;
+  pointer-events: none;
+  transform: rotate(-15deg); /* Slanted slightly to give a high-end designer layout dynamic */
+}
+
+.hero-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* Sits directly on top of the ellipse shader */
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3; /* Kept safely over the canvas for crisp legibility */
+  text-align: center;
+  padding: 0 1.5rem;
+  pointer-events: none;
+}
+
+/* Typography Styling */
+.hero-content h1 {
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  font-weight: 300;
+  color: #ffffff;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.hero-content h1 .name {
+  color: #ffffff;
+  font-weight: 800;
+  position: relative;
+  display: inline-block;
+}
+
+.hero-content .subtitle {
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 1.2rem;
+  letter-spacing: 0.02em;
+}
+
+/* Rounded Pill Button */
+.view-work-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 3rem;
+  padding: 0.85rem 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.view-work-btn:hover {
+  background: #ffffff;
+  color: #041f24;
+  border-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.view-work-btn .arrow {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.view-work-btn:hover .arrow {
+  transform: translateY(3px);
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  position: fixed;
+  top: -80px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 3rem;
+  background: rgba(4, 31, 36, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar.visible {
+  top: 0;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.navbar-links a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-links a:hover,
+.navbar-links a.active {
+  color: #ffffff;
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem 1.5rem;
+  }
+
+  .navbar-links {
+    gap: 1.5rem;
+  }
 }
