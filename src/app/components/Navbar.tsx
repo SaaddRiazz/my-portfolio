@@ -3,33 +3,39 @@
 import { useEffect, useState } from 'react';
 
 export default function Navbar() {
-  const [visible, setVisible] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Show navbar once we scroll past the hero section (about 70% viewport height)
-      const scrollY = window.scrollY;
-      const triggerPoint = window.innerHeight * 0.7;
-
-      setVisible(scrollY > triggerPoint);
-
-      // Determine active section based on scroll position
-      const sections = ['home', 'about', 'projects', 'contact'];
-      for (const id of sections.reverse()) {
-        const el = document.getElementById(id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 120) {
-            setActiveSection(id);
-            break;
-          }
-        }
-      }
+    const sections = ['home', 'about', 'projects', 'contact'];
+    
+    // Monitors elements transitioning across the viewport space
+    const options = {
+      root: null,
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0,
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, options);
+
+    sections.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      sections.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) observer.unobserve(el);
+      });
+    };
   }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
@@ -41,7 +47,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`navbar ${visible ? 'visible' : ''}`}>
+    <nav className="navbar backdrop-blur-md">
       <ul className="navbar-links">
         {['Home', 'About', 'Projects', 'Contact'].map((item) => {
           const id = item.toLowerCase();
