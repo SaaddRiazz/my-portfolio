@@ -7,6 +7,7 @@ interface TypewriterProps {
   typingSpeed?: number;
   deletingSpeed?: number;
   delayBetweenWords?: number;
+  startDelay?: number; // Added to wait out layout entrances
 }
 
 export default function Typewriter({
@@ -14,17 +15,28 @@ export default function Typewriter({
   typingSpeed = 100,
   deletingSpeed = 50,
   delayBetweenWords = 1500,
+  startDelay = 1300, // Syncs with the subtitle's animation time
 }: TypewriterProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentText, setCurrentText] = useState('');
+  const [currentText, setCurrentText] = useState(words[0]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [prefix, setPrefix] = useState('a');
+  const [isReadyToType, setIsReadyToType] = useState(false);
+
+  // Initial gate delay to let elements arrive in layout coordinates
+  useEffect(() => {
+    const startTimer = setTimeout(() => {
+      setIsReadyToType(true);
+    }, startDelay);
+    return () => clearTimeout(startTimer);
+  }, [startDelay]);
 
   useEffect(() => {
+    if (!isReadyToType) return; // Freeze text iteration until layout slides in
+
     let timer: NodeJS.Timeout;
     const fullWord = words[currentWordIndex];
 
-    // Check if the current word starts with a vowel to toggle "a" or "an"
     if (fullWord) {
       const firstLetter = fullWord.trim().charAt(0).toLowerCase();
       const properPrefix = ['a', 'e', 'i', 'o', 'u'].includes(firstLetter) ? 'an' : 'a';
@@ -32,41 +44,35 @@ export default function Typewriter({
     }
 
     if (!isDeleting) {
-      // Typing effect
       if (currentText !== fullWord) {
         timer = setTimeout(() => {
           setCurrentText(fullWord.substring(0, currentText.length + 1));
         }, typingSpeed);
       } else {
-        // Pause before deleting
         timer = setTimeout(() => setIsDeleting(true), delayBetweenWords);
       }
     } else {
-      // Deleting effect
       if (currentText !== '') {
         timer = setTimeout(() => {
           setCurrentText(fullWord.substring(0, currentText.length - 1));
         }, deletingSpeed);
       } else {
-        // Move to the next word
         setIsDeleting(false);
         setCurrentWordIndex((prevIndex) => (prevIndex + 1) % words.length);
       }
     }
 
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentWordIndex, words, typingSpeed, deletingSpeed, delayBetweenWords]);
+  }, [currentText, isDeleting, currentWordIndex, words, typingSpeed, deletingSpeed, delayBetweenWords, isReadyToType]);
 
   return (
-    // Standardized spacing using standard text flow
     <span className="typewriter-sentence">
       I&apos;m {prefix} {currentText}
       <span className="insert-cursor">&nbsp;</span>
 
-      {/* Styled thick insert-mode cursor */}
       <style>{`
         .typewriter-sentence {
-          white-space: pre-wrap; /* Guarantees standard space character widths */
+          white-space: pre-wrap;
         }
         .insert-cursor {
           display: inline-block;
