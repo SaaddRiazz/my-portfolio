@@ -47,7 +47,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
+    <nav className="navbar backdrop-blur-md">
       <ul className="navbar-links">
         {['Home', 'About', 'Projects', 'Contact'].map((item) => {
           const id = item.toLowerCase();

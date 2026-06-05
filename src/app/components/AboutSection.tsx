@@ -80,7 +80,7 @@ export default function AboutSection() {
               Hello! I&apos;m Saad, a multi-disciplinary developer who thrives at the intersection of logical engineering and interactive design. Whether structuring complex web ecosystems or bringing virtual worlds to life in game engines, I focus on building responsive, performant architectures.
             </p>
             <p>
-              My approach maps out scalable systems while ensuring the final interface stays smooth and engaging. Check out my structural toolkit!
+              I have a deep passion for game development because of the endless opportunities to discover new things and build something unique. If you got the vision, I got the code. Let's make it real.
             </p>
           </div>
 
@@ -91,10 +91,10 @@ export default function AboutSection() {
                 {col.data.map((skill) => (
                   <div 
                     key={skill.name} 
-                    className={`skill-bubble ${skill.colorShift ? 'shift-color' : ''}`}
+                    className={`skill-block ${skill.colorShift ? 'shift-color' : ''}`}
                     title={skill.name}
                   >
-                    <div className="bubble-content">
+                    <div className="block-content">
                       {skill.icon}
                       <span className="skill-name">{skill.name}</span>
                     </div>

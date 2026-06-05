@@ -164,9 +164,7 @@ body {
   justify-content: flex-end;
   align-items: center;
   padding: 1.2rem 3rem;
-  background: rgba(4, 31, 36, 0.85); 
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(4, 31, 36, 0.8);
   border-bottom: 1px solid rgba(0, 229, 255, 0.1); 
 }
 
@@ -277,7 +275,7 @@ body {
 }
 
 /* Base Unified Bubble Element Style */
-.skill-bubble {
+.skill-block {
   width: 140px;
   height: 90px;
   border-radius: 12px; 
@@ -298,7 +296,7 @@ body {
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1), box-shadow 0.3s ease;
 }
 
-.bubble-content {
+.block-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -308,7 +306,7 @@ body {
   height: 100%;
 }
 
-.bubble-content img {
+.block-content img {
   object-fit: contain;
   transition: transform 0.3s ease;
 }
@@ -323,7 +321,7 @@ body {
 }
 
 /* Interactive States */
-.skill-bubble:hover {
+.skill-block:hover {
   transform: scale(1.08);
   box-shadow: 0 0 25px rgba(0, 229, 255, 0.45);
   background-image: linear-gradient(#114b57, #114b57), 
@@ -331,11 +329,11 @@ body {
   z-index: 20;
 }
 
-.skill-bubble:hover .bubble-content img {
+.skill-block:hover .block-content img {
   transform: scale(1.05);
 }
 
-.skill-bubble:hover .skill-name {
+.skill-block:hover .skill-name {
   color: #ffffff; 
 }
 
@@ -348,11 +346,10 @@ body {
 }
 
 @media (max-width: 520px) {
-  /* Break standard tracking down into grid squares on small screens */
   .skills-grid-container {
     grid-template-columns: repeat(2, 140px);
   }
   .skills-vertical-track {
-    display: contents; /* un-wraps flex logic cleanly into mobile grid */
+    display: contents; 
   }
 }
