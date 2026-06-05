@@ -195,7 +195,7 @@ body {
 
 /* ===== About Section Styles ===== */
 .about-section {
-  padding: 8rem 2rem;
+  padding: 4rem 2rem;
   background: #041f24; 
   display: flex;
   justify-content: center;
@@ -208,27 +208,45 @@ body {
 .about-wrapper {
   max-width: 1200px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Gap between top centered header and content below */
+}
+
+/* Header style handling centering layout */
+.about-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.about-header h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  position: relative;    
+  display: inline-block;  
+  z-index: 1;             
+}
+
+.about-header h2::after {
+  content: '';
+  position: absolute;
+  left: 20%;
+  bottom: 20%;
+  width: 100%;          
+  height: 20%;          
+  background: #00a2b4;
+  z-index: -1;
+}
+
+/* Lower inner grid separating text and centered skill paths */
+.about-content {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
   gap: 6rem;
   align-items: center;
-}
-
-.about-intro h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 1.5rem;
-}
-
-.about-intro h2::after {
-  content: '';
-  display: block;
-  width: 50px;
-  height: 4px;
-  background: #00e5ff; 
-  margin-top: 0.5rem;
-  border-radius: 2px;
 }
 
 .about-intro p {
@@ -290,17 +308,9 @@ body {
   height: 100%;
 }
 
-.bubble-content svg {
-  width: 26px;
-  height: 26px;
-  max-width: 100%;
-  max-height: 100%;
+.bubble-content img {
   object-fit: contain;
-  transition: color 0.3s ease, transform 0.3s ease;
-}
-
-.bubble-content svg * {
-  transition: fill 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .skill-name {
@@ -321,7 +331,7 @@ body {
   z-index: 20;
 }
 
-.skill-bubble:hover .bubble-content svg {
+.skill-bubble:hover .bubble-content img {
   transform: scale(1.05);
 }
 
@@ -331,7 +341,7 @@ body {
 
 /* Responsive Configuration Adjustments */
 @media (max-width: 992px) {
-  .about-wrapper {
+  .about-content {
     grid-template-columns: 1fr;
     gap: 4rem;
   }
