@@ -1,0 +1,139 @@
+/* components/hero.css */
+
+/* 1. Core Viewport Foundation */
+.hero {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff; /* Flat, pristine white background profile */
+  position: relative;
+  overflow: hidden;
+}
+
+/* 2. Seamless Grid Overlay Boundary Box */
+.stream-matrix-field {
+  position: absolute;
+  inset: -100px; /* Expands past container bounds slightly to shield screen edge clip zones */
+  width: calc(100% + 200px);
+  height: calc(100% + 200px);
+  z-index: 1;
+  pointer-events: auto;
+  user-select: none;
+}
+
+/* 3. Foreground Text Wrapper Panels */
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 800px;
+  padding: 0 1.5rem;
+  pointer-events: none; 
+  user-select: none;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #000000;
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .hero-content h1 {
+    font-size: 4.5rem;
+  }
+}
+
+.hero-content .name {
+  color: #4f46e5; 
+}
+
+.hero-content .subtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #000000;
+  margin-bottom: 2rem;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .hero-content .subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+/* Force external typewriter components/cursors to remain pure black */
+.hero-content .subtitle * {
+  color: #000000 !important;
+}
+
+/* 4. Action CTA Interface Buttons */
+.view-work-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background-color: #000000;
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.view-work-btn:hover {
+  background-color: #1a1a1a;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+.view-work-btn .arrow {
+  color: #ffffff !important;
+  transition: transform 0.3s ease;
+}
+
+.view-work-btn:hover .arrow {
+  transform: translateY(3px);
+}
+
+/* 5. Original Core Entrance Motions */
+.animate-slide-left {
+  opacity: 0;
+  transform: translateX(-100px);
+  animation: slideIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-right {
+  opacity: 0;
+  transform: translateX(100px);
+  animation: slideIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(25px);
+  animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 1.1s;
+}
+
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
