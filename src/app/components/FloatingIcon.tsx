@@ -1,36 +1,22 @@
 // components/FloatingIcon.tsx
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface FloatingIconProps {
   Icon: LucideIcon;
-  pixelX: number;
-  pixelY: number;
 }
 
-// Solid rainbow color palette for active hover fills
 const solidRainbowColors = [
-  '#ef4444', // Red
-  '#f97316', // Orange
-  '#f59e0b', // Yellow
-  '#22c55e', // Green
-  '#06b6d4', // Cyan
-  '#3b82f6', // Blue
-  '#a855f7', // Purple
-  '#ec4899', // Pink
+  '#ef4444', '#f97316', '#f59e0b', '#22c55e', 
+  '#06b6d4', '#3b82f6', '#a855f7', '#ec4899'
 ];
 
-export default function FloatingIcon({ Icon, pixelX, pixelY }: FloatingIconProps) {
-  const [isMounted, setIsMounted] = useState(false);
+export default function FloatingIcon({ Icon }: FloatingIconProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [activeColor, setActiveColor] = useState('');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -39,30 +25,24 @@ export default function FloatingIcon({ Icon, pixelX, pixelY }: FloatingIconProps
     setActiveColor(randomColor);
     setIsHovered(true);
 
-    // Reverts back to baseline muted profile after exactly 2 seconds (2000ms)
     timeoutRef.current = setTimeout(() => {
       setIsHovered(false);
     }, 2000);
   };
 
-  if (!isMounted) return null;
-
   return (
     <div
       onMouseEnter={handleMouseEnter}
       className={`
-        absolute select-none transform transition-transform duration-300 pointer-events-auto
-        ${isHovered ? 'scale-125 z-20' : 'hover:scale-115'}
+        icon-container select-none transform transition-all duration-300 pointer-events-auto
+        ${isHovered ? 'scale-125 z-20' : 'hover:scale-110'}
       `}
       style={{
-        left: `${pixelX}px`,
-        top: `${pixelY}px`,
-        color: isHovered ? activeColor : 'rgb(222, 225, 228)',
-        fill: isHovered ? activeColor : 'transparent', // Solid, un-gradient shape interior fill toggle
-        transform: 'translate(-50%, -50%) rotate(45deg)', // Perfect 45-degree rotation lock
+        color: isHovered ? activeColor : 'rgb(228, 231, 235)',
+        fill: isHovered ? activeColor : 'transparent',
       }}
     >
-      <Icon size={20} className="w-5 h-5 transition-colors duration-200" strokeWidth={2.5} />
+      <Icon size={16} className="w-4 h-4 transition-colors duration-200" strokeWidth={2.5} />
     </div>
   );
 }

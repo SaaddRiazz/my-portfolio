@@ -1,7 +1,7 @@
 // components/HeroSection.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Typewriter from './Typewriter';
 import FloatingIcon from './FloatingIcon';
 import '../styles/hero.css'; 
@@ -21,14 +21,13 @@ const iconPool = [
   Server, Share2, Disc, KeyRound, Wrench
 ];
 
-interface GridItem {
-  id: string;
-  iconIndex: number;
-  gridX: number; 
-  gridY: number; 
-}
-
 export default function HeroSection() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const roles = [
     'Software Engineer.',
     'Game Developer.',
@@ -37,77 +36,44 @@ export default function HeroSection() {
     'AI Engineer.',
   ];
 
-  // High-Density Configuration Metrics
-  const stepX = 48; // Extremely tight horizontal packing (in pixels)
-  const stepY = 48; // Extremely tight vertical packing (in pixels)
-  const gridWidth = 70; // Expanded column pool to overflow large monitors safely
-  const gridHeight = 45; // Expanded row pool to satisfy screen heights
+  // Grid sizing parameters
+  const totalRows = 24; 
+  const uniqueIconsPerRow = 28; // Number of unique random icons before the loop sequence mirrors
 
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  // 1. Generate a uniform structural layout matrix
-  const gridItems = useMemo(() => {
-    const items: GridItem[] = [];
-    for (let x = 0; x < gridWidth; x++) {
-      for (let y = 0; y < gridHeight; y++) {
-        items.push({
-          id: `${x}-${y}`,
-          iconIndex: Math.floor(Math.random() * iconPool.length),
-          gridX: x,
-          gridY: y,
-        });
+  // Generate a distinct, completely randomized icon sequence for EVERY separate track
+  const randomizedMatrix = useMemo(() => {
+    const matrix: number[][] = [];
+    for (let r = 0; r < totalRows; r++) {
+      const rowSequence: number[] = [];
+      for (let i = 0; i < uniqueIconsPerRow; i++) {
+        rowSequence.push(Math.floor(Math.random() * iconPool.length));
       }
+      matrix.push(rowSequence);
     }
-    return items;
+    return matrix;
   }, []);
 
-  // 2. Hardware-accelerated dynamic drift velocity thread
-  useEffect(() => {
-    let animationFrameId: number;
-    const speed = 0.35; // Pixels per frame drift factor
-
-    const updateFrame = () => {
-      setOffset((prev) => ({
-        x: prev.x + speed,
-        y: prev.y + speed
-      }));
-      animationFrameId = requestAnimationFrame(updateFrame);
-    };
-
-    animationFrameId = requestAnimationFrame(updateFrame);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, []);
-
-  const totalWidthPx = gridWidth * stepX;
-  const totalHeightPx = gridHeight * stepY;
+  if (!mounted) {
+    return <section id="home" className="hero" />;
+  }
 
   return (
     <section id="home" className="hero">
       
-      {/* HIGH-DENSITY SEAMLESS INTERLOCKING GRID LAYER */}
+      {/* HIGH-DENSITY COMPLETELY RANDOMIZED INFINITE CONVEYOR MATRIX */}
       <div className="stream-matrix-field">
-        {gridItems.map((item) => {
-          // Stagger alternate vertical lines by half a step to compress empty pockets
-          const stagger = (item.gridY % 2) * (stepX / 2);
-          const initialX = item.gridX * stepX + stagger;
-          const initialY = item.gridY * stepY;
-
-          // Process positions through a strict modulo rule to guarantee wrapping behavior
-          let currentX = (initialX + offset.x) % totalWidthPx;
-          let currentY = (initialY + offset.y) % totalHeightPx;
-
-          if (currentX < 0) currentX += totalWidthPx;
-          if (currentY < 0) currentY += totalHeightPx;
-
-          const TargetIcon = iconPool[item.iconIndex];
+        {randomizedMatrix.map((rowSequence, rowIndex) => {
+          // Alternate animation vectors to build the requested dense diagonal flow
+          const directionClass = rowIndex % 2 === 0 ? 'move-left' : 'move-right';
 
           return (
-            <FloatingIcon 
-              key={item.id} 
-              Icon={TargetIcon} 
-              pixelX={currentX} 
-              pixelY={currentY} 
-            />
+            <div key={rowIndex} className={`grid-row ${directionClass}`}>
+              {/* Double this specific row's unique array back-to-back to forge a seamless mirror seam */}
+              {[...rowSequence, ...rowSequence].map((iconIdx, itemIdx) => {
+                const TargetIcon = iconPool[iconIdx];
+                return <FloatingIcon key={itemIdx} Icon={TargetIcon} />;
+              })}
+            </div>
           );
         })}
       </div>
