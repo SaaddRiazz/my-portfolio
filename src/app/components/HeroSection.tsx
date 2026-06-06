@@ -36,11 +36,10 @@ export default function HeroSection() {
     'AI Engineer.',
   ];
 
-  // Grid sizing parameters
   const totalRows = 24; 
-  const uniqueIconsPerRow = 28; // Number of unique random icons before the loop sequence mirrors
+  const uniqueIconsPerRow = 28; 
 
-  // Generate a distinct, completely randomized icon sequence for EVERY separate track
+  // Generates unique random icon tracks for each separate layout line item
   const randomizedMatrix = useMemo(() => {
     const matrix: number[][] = [];
     for (let r = 0; r < totalRows; r++) {
@@ -60,15 +59,12 @@ export default function HeroSection() {
   return (
     <section id="home" className="hero">
       
-      {/* HIGH-DENSITY COMPLETELY RANDOMIZED INFINITE CONVEYOR MATRIX */}
+      {/* UNIFIED SINGLE-DIRECTION HIGH-DENSITY GRID LAYER */}
       <div className="stream-matrix-field">
         {randomizedMatrix.map((rowSequence, rowIndex) => {
-          // Alternate animation vectors to build the requested dense diagonal flow
-          const directionClass = rowIndex % 2 === 0 ? 'move-left' : 'move-right';
-
           return (
-            <div key={rowIndex} className={`grid-row ${directionClass}`}>
-              {/* Double this specific row's unique array back-to-back to forge a seamless mirror seam */}
+            <div key={rowIndex} className="grid-row move-left">
+              {/* Duplicates sequence to ensure pixel-perfect loop connections */}
               {[...rowSequence, ...rowSequence].map((iconIdx, itemIdx) => {
                 const TargetIcon = iconPool[iconIdx];
                 return <FloatingIcon key={itemIdx} Icon={TargetIcon} />;

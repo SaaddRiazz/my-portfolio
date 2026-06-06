@@ -31,18 +31,17 @@ export default function FloatingIcon({ Icon }: FloatingIconProps) {
   };
 
   return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      className={`
-        icon-container select-none transform transition-all duration-300 pointer-events-auto
-        ${isHovered ? 'scale-125 z-20' : 'hover:scale-110'}
-      `}
-      style={{
-        color: isHovered ? activeColor : 'rgb(228, 231, 235)',
-        fill: isHovered ? activeColor : 'transparent',
-      }}
-    >
-      <Icon size={16} className="w-4 h-4 transition-colors duration-200" strokeWidth={2.5} />
+    <div onMouseEnter={handleMouseEnter} className="icon-container">
+      <div 
+        className={`transform transition-all duration-300 ${isHovered ? 'scale-125 z-20' : ''}`}
+        style={{
+          color: isHovered ? activeColor : 'rgb(228, 231, 235)',
+          fill: isHovered ? activeColor : 'transparent',
+          display: 'inline-flex'
+        }}
+      >
+        <Icon size={16} className="w-4 h-4 transition-colors duration-200" strokeWidth={2.5} />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 /* components/hero.css */
 
-/* 1. Core Viewport Container */
+/* 1. Core Canvas Foundation */
 .hero {
   width: 100%;
   height: 100vh;
@@ -24,7 +24,7 @@
   justify-content: space-between;
   pointer-events: auto;
   user-select: none;
-  /* Slants row tracks uniformly to maintain an active diagonal stream */
+  /* Tilts row tracking vectors to maintain the requested dense diagonal flow */
   transform: skewY(-6deg) scale(1.05); 
 }
 
@@ -32,25 +32,27 @@
 .grid-row {
   display: flex;
   width: max-content;
-  gap: 2.25rem; /* Determines dense packing margins */
+  gap: 1.5rem; /* Packing tight margins */
   white-space: nowrap;
   will-change: transform;
 }
 
 /* Individual Icon Rotation Core Configuration */
 .icon-container {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transform: rotate(45deg); /* Locks visual assets to a 45 degree tilt */
   flex-shrink: 0;
+  padding: 1.25rem; /* Expanded hover footprint hit box padding */
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
 }
 
-/* 4. GPU-ACCELERATED ZERO-OVERHEAD SEAMLESS SCROLLING KEYFRAMES */
+/* 4. UNIFIED GPU-ACCELERATED NO-SNAP RUNTIME KEYFRAMES */
 .move-left {
   animation: scrollConveyorLeft 55s linear infinite;
-}
-
-.move-right {
-  animation: scrollConveyorRight 55s linear infinite;
 }
 
 @keyframes scrollConveyorLeft {
@@ -62,16 +64,7 @@
   }
 }
 
-@keyframes scrollConveyorRight {
-  0% {
-    transform: translate3d(-50%, 0, 0);
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-/* 5. Foreground Content Controls */
+/* 5. Foreground Content Panels */
 .hero-content {
   position: relative;
   z-index: 10;
@@ -125,16 +118,14 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background-color: #00000037;
-  color: #000000 !important;
+  background-color: #000000;
+  color: #ffffff !important;
   font-weight: 600;
   border-radius: 0.75rem;
   text-decoration: none;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   pointer-events: auto;
-  border-color: #000000;
-  border-width: 3px;
 }
 
 .view-work-btn:hover {
@@ -145,12 +136,11 @@
 }
 
 .view-work-btn .arrow {
-  color: #000000 !important;
+  color: #ffffff !important;
   transition: transform 0.3s ease;
 }
 
 .view-work-btn:hover .arrow {
-  color: #ffffff !important;
   transform: translateY(3px);
 }
 
