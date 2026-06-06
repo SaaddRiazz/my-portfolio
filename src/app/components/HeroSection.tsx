@@ -29,11 +29,9 @@ export default function HeroSection() {
   }, []);
 
   const roles = [
-    'Software Engineer.',
     'Game Developer.',
-    'Web Developer.',
+    'Full Stack Web Developer.',
     'Android App Developer.',
-    'AI Engineer.',
   ];
 
   const totalRows = 24; 
@@ -81,10 +79,10 @@ export default function HeroSection() {
         </h1>
 
         <p className="subtitle animate-slide-right">
-          <Typewriter words={roles} startDelay={1300} />
+          <Typewriter words={roles} startDelay={1300}/>
         </p>
 
-        <a href="#about" className="view-work-btn animate-fade-up">
+        <a href="#about" className="backdrop-blur-md view-work-btn animate-fade-up">
           View my work <span className="arrow">↓</span>
         </a>
       </div>
