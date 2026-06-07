@@ -2,48 +2,52 @@
 
 import React from 'react';
 import '../styles/about.css';
-import GumballSkills from './GumballMachine'
-
-interface SkillBubble {
-  name: string;
-  icon: React.ReactNode; 
-  colorShift?: boolean;
-}
+import GumballSkills from './GumballMachine';
 
 export default function AboutSection() {
   return (
     <section id="about" className="about-section">
       <div className="about-wrapper">
-        
-        {/* Centered Top Heading */}
+
+        {/* Page heading */}
         <div className="about-header">
           <h2>About</h2>
         </div>
 
-        {/* Bottom Content Area */}
         <div className="about-content">
-          {/* Left Side: Biographical Text Block */}
+
+          {/* LEFT — Bio text with headings to fill height */}
           <div className="about-intro">
+
+            <p className="skills-label">Who I am</p>
+            <h3 className="about-intro-heading">
+              Building at the edge of <span>code & creativity</span>
+            </h3>
+
             <p>
-              Hello! I&apos;m Saad, a <strong>multi-disciplinary developer</strong> who thrives at the intersection of logical engineering and interactive design. Whether structuring complex web ecosystems or bringing virtual worlds to life in game engines, I focus on building responsive, <strong>performant architectures</strong>.
+              Hello! I&apos;m Saad, a <strong>multi-disciplinary developer</strong> who thrives
+              at the intersection of logical engineering and interactive design. Whether
+              structuring complex web ecosystems or bringing virtual worlds to life in
+              game engines, I focus on building responsive,{' '}
+              <strong>performant architectures</strong>.
             </p>
-            <p>
-              I have a deep passion for game development because of the endless opportunities to discover new things and build something unique. If you got the vision, <strong>I got the code</strong>. Let's make it real.
+
+            <p className="callout">
+              I have a deep passion for game development — the endless opportunity to
+              discover, build, and ship something truly unique. If you got the vision,{' '}
+              <strong>I got the code</strong>. Let&apos;s make it real.
             </p>
+
+            <p className="skills-label">Skills — click the crank to reveal</p>
+
           </div>
 
-          {/* Right Side: Triple Centered Column Structure Container */}
-          <div className="skills-grid-container" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',   // ← centers canvas + grid horizontally
-            justifyContent: 'center',
-            width: '100%',
-          }}>
-            <GumballSkills />       {/* replace ModelViewer with your new component */}
+          {/* RIGHT — Gumball machine */}
+          <div className="skills-grid-container">
+            <GumballSkills />
           </div>
+
         </div>
-
       </div>
     </section>
   );

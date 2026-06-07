@@ -18,8 +18,13 @@ const skills = [
   { name: 'Git',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg' },
 ];
 
-const BALL_COLORS = ['#ff007b', '#ffc400', '#003cff', '#ff0000', '#00ff08', '#ff00fb', '#ff5100', '#7700ff'];
-
+// Vivid gumball colors — one assigned per skill on unlock
+const GUMBALL_COLORS = [
+  '#FF3CAC', '#FF7C2A', '#FFD600', '#00E676',
+  '#00B0FF', '#D500F9', '#FF1744', '#69F0AE',
+  '#40C4FF', '#FFAB40',
+];
+// ── Animated falling gumball ─────────────────────────────────────
 function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
   const ref = useRef<any>(null);
   const progress = useRef(0);
@@ -40,6 +45,8 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
 
     if (ref.current) {
       ref.current.position.set(x, y, z);
+      ref.current.rotation.x += delta * 8;
+      ref.current.rotation.z += delta * 5;
     }
 
     if (t >= 1) onComplete();
@@ -47,19 +54,20 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
 
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[0.05, 16, 16]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+      <sphereGeometry args={[0.055, 16, 16]} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.2} metalness={0.1} />
     </mesh>
   );
 }
 
-function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void; spinning: boolean }) {
+// ── Machine model ────────────────────────────────────────────────
+function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void }) {
   const { scene } = useGLTF('/models/gumball-machine-transformed.glb');
   const [balls, setBalls] = useState<Array<{ id: number; color: string }>>([]);
 
   function spawnBall() {
     const id = Date.now();
-    const color = BALL_COLORS[Math.floor(Math.random() * BALL_COLORS.length)];
+    const color = GUMBALL_COLORS[Math.floor(Math.random() * GUMBALL_COLORS.length)];
     setBalls(prev => [...prev, { id, color }]);
   }
 
@@ -80,7 +88,6 @@ function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void; spinn
           onCrankClick();
         }}
       />
-
       {balls.map(ball => (
         <GumballBall
           key={ball.id}
@@ -92,7 +99,8 @@ function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void; spinn
   );
 }
 
-function ModelCanvas({ onCrankClick, spinning }: { onCrankClick: () => void; spinning: boolean }) {
+// ── Canvas ────────────────────────────────────────────────────────
+function ModelCanvas({ onCrankClick }: { onCrankClick: () => void }) {
   return (
     <div className="canvas-container">
       <Canvas
@@ -103,18 +111,20 @@ function ModelCanvas({ onCrankClick, spinning }: { onCrankClick: () => void; spi
         <directionalLight position={[0, 10, 8]}  intensity={2.0} />
         <directionalLight position={[-5, 5, 5]}  intensity={1.0} />
         <pointLight       position={[0, 3, 4]}   intensity={1.5} color="#ffffff" />
-        <GumballMachineModel onCrankClick={onCrankClick} spinning={spinning} />
+        <GumballMachineModel onCrankClick={onCrankClick} />
       </Canvas>
     </div>
   );
 }
 
+// ── Main export ───────────────────────────────────────────────────
 export default function GumballSkills() {
   const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
+  const [skillColors, setSkillColors]   = useState<Record<number, string>>({});
   const [spinning, setSpinning]         = useState(false);
   const [toast, setToast]               = useState('');
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
-  const toastTimer = useRef<NodeJS.Timeout | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockRef    = useRef(false);
 
   function showToast(msg: string) {
@@ -134,12 +144,21 @@ export default function GumballSkills() {
 
     setTimeout(() => {
       const idx = locked[Math.floor(Math.random() * locked.length)];
+
+      // Assign a unique gumball color to this skill
+      const usedColors = Object.values(skillColors);
+      const available = GUMBALL_COLORS.filter(c => !usedColors.includes(c));
+      const color = available.length > 0
+        ? available[Math.floor(Math.random() * available.length)]
+        : GUMBALL_COLORS[idx % GUMBALL_COLORS.length];
+
+      setSkillColors(prev => ({ ...prev, [idx]: color }));
       setUnlocked(prev => new Set([...prev, idx]));
       setJustUnlocked(idx);
       showToast(`Unlocked: ${skills[idx].name}!`);
       setSpinning(false);
       lockRef.current = false;
-      setTimeout(() => setJustUnlocked(null), 700);
+      setTimeout(() => setJustUnlocked(null), 800);
     }, 2000);
   }
 
@@ -147,8 +166,8 @@ export default function GumballSkills() {
 
   return (
     <div className="gumball-skills-container">
-      
-      <ModelCanvas onCrankClick={handleCrankClick} spinning={spinning} />
+
+      <ModelCanvas onCrankClick={handleCrankClick} />
 
       <p className="status-message">
         {remaining > 0
@@ -160,16 +179,18 @@ export default function GumballSkills() {
         {skills.map((s, i) => {
           const isUnlocked = unlocked.has(i);
           const isNew = justUnlocked === i;
-          let gridItemClass = "skill-card";
-          if (isNew) gridItemClass += " newly-unlocked";
-          if (isUnlocked) gridItemClass += " unlocked";
+          const bgColor = skillColors[i] || 'transparent';
 
           return (
-            <div key={s.name} className={gridItemClass}>
+            <div
+              key={s.name}
+              className={`skill-card${isNew ? ' newly-unlocked' : ''}${isUnlocked ? ' unlocked' : ''}`}
+              style={isUnlocked ? { background: bgColor, borderColor: bgColor } : {}}
+            >
               {isUnlocked ? (
                 <>
                   <div className="icon-wrapper">
-                    <Image src={s.icon} alt={s.name} width={40} height={40} unoptimized />
+                    <Image src={s.icon} alt={s.name} width={36} height={36} unoptimized />
                   </div>
                   <span className="skill-name">{s.name}</span>
                 </>
