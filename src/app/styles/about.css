@@ -1,0 +1,214 @@
+/* ==========================================================================
+   BOX RESETS & WRAPPING REPAIR
+   ========================================================================== */
+   
+.about-section,
+.about-section * {
+  box-sizing: border-box; /* Force paddings/borders to stay inside layout width */
+}
+
+.about-section {
+  background-color: #ffffff; /* Kept solid white background */
+  color: #111111;
+  padding: 4rem 1rem; /* Scaled down padding for mobile screens */
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden; /* Prevent any unintentional horizontal bounce */
+}
+
+.about-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* --- Responsive Typography --- */
+.about-header {
+  text-align: center;
+}
+
+.about-header h2 {
+  font-size: calc(2.2rem + 1vw); /* Dynamic size adjusting fluidly with viewport */
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.about-header::after {
+  content: '';
+  display: block;
+  width: 50px;
+  height: 4px;
+  background: #ff4757;
+  margin: 0.75rem auto 0 auto;
+  border-radius: 2px;
+}
+
+/* --- Layout Grid: Split on Desktop, Stacked on Mobile --- */
+.about-content {
+  display: grid;
+  grid-template-columns: 1fr; /* Default to single column for mobile */
+  gap: 3rem;
+  width: 100%;
+}
+
+.about-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.about-intro p {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: #444444;
+  margin: 0;
+  word-break: break-word; /* Force text wrapping inside bounds */
+}
+
+.about-intro strong {
+  font-weight: 700;
+  color: #000000;
+  display: inline; /* Avoid block declarations that break line flows */
+}
+
+/* Custom left-border callout block layout */
+.about-intro p:last-of-type {
+  font-size: 1.25rem;
+  color: #111;
+  border-left: 3px solid #ff4757;
+  padding-left: 1rem;
+}
+
+/* ==========================================================================
+   GUMBALL SKILLS INTERACTIVE GRAPHIC (FIXING IMAGE_755E6E.PNG)
+   ========================================================================== */
+
+.gumball-skills-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Responsive 3D Canvas bounds configuration */
+.canvas-container {
+  width: 100%;
+  height: 45vh;
+  min-height: 320px;
+  max-height: 500px;
+}
+
+.status-message {
+  font-size: 0.95rem;
+  color: #555;
+  text-align: center;
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 1.4;
+}
+
+/* FIX: Fluid grid system utilizing auto-fit mechanics */
+.skills-grid {
+  display: grid;
+  /* Automatically wraps items to a new row if they drop below 85px wide */
+  grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); 
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* Optimized card square mapping proportions */
+.skill-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.25rem;
+  border-radius: 14px;
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Guarantees layout stays perfectly square */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+
+.skill-card.newly-unlocked {
+  border: 2px solid #ff4757;
+  background: rgba(255, 71, 87, 0.03);
+}
+
+/* Smooth internal responsive image element constraints */
+.icon-wrapper {
+  width: 32px;
+  height: 32px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrapper img {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain;
+}
+
+.lock-placeholder {
+  font-size: 1.1rem;
+  opacity: 0.6;
+}
+
+.skill-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #333333;
+  text-align: center;
+}
+
+/* Global Fixed Toast Notification Window */
+.gumball-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111111;
+  border-radius: 30px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.85rem;
+  color: #ffffff;
+  z-index: 9999;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   MEDIA QUERY DESKTOP ENHANCEMENTS (SPLITTING COLUMNS BACK UP)
+   ========================================================================== */
+@media (min-width: 868px) {
+  .about-content {
+    grid-template-columns: 1.1fr 0.9fr; /* Splits elements safely side-by-side */
+    gap: 4rem;
+  }
+  
+  .about-section {
+    padding: 6rem 2rem;
+  }
+  
+  .about-intro p {
+    font-size: 1.25rem;
+  }
+  
+  /* Fix layout to show a constant max-5 wide element format grid on desktop displays */
+  .skills-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
