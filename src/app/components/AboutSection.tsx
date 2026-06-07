@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import GumballSkills from './GumballMachine'
 
 interface SkillBubble {
   name: string;
@@ -9,60 +10,6 @@ interface SkillBubble {
 }
 
 export default function AboutSection() {
-  const skills: SkillBubble[] = [
-    { 
-      name: 'Unity', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg" />
-    },
-    { 
-      name: 'React', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg" />
-    },
-    { 
-      name: 'Python', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg" />
-    },
-    { 
-      name: 'TypeScript', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg" />
-    },
-    { 
-      name: 'Node.js', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg" />
-    },
-    { 
-      name: 'Next.js', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg" />
-    },
-    { 
-      name: 'C#', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg" />
-    },
-    { 
-      name: 'Java', 
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg" />
-    },
-    {
-      name: 'Blender',
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/blender/blender-original.svg" />
-    },
-    {
-      name: 'Git',
-      icon: <img width={50} src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" />
-    }
-  ];
-
-  // Distribute exactly: 3 left, 4 middle, 3 right
-  const leftColumn = skills.slice(0, 3);
-  const middleColumn = skills.slice(3, 7);
-  const rightColumn = skills.slice(7, 10);
-
-  const columnLayouts = [
-    { id: 'left', data: leftColumn },
-    { id: 'middle', data: middleColumn },
-    { id: 'right', data: rightColumn },
-  ];
-
   return (
     <section id="about" className="about-section">
       <div className="about-wrapper">
@@ -85,23 +32,14 @@ export default function AboutSection() {
           </div>
 
           {/* Right Side: Triple Centered Column Structure Container */}
-          <div className="skills-grid-container">
-            {columnLayouts.map((col) => (
-              <div key={col.id} className="skills-vertical-track">
-                {col.data.map((skill) => (
-                  <div 
-                    key={skill.name} 
-                    className={`skill-block ${skill.colorShift ? 'shift-color' : ''}`}
-                    title={skill.name}
-                  >
-                    <div className="block-content">
-                      {skill.icon}
-                      <span className="skill-name">{skill.name}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
+          <div className="skills-grid-container" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',   // ← centers canvas + grid horizontally
+            justifyContent: 'center',
+            width: '100%',
+          }}>
+            <GumballSkills />       {/* replace ModelViewer with your new component */}
           </div>
         </div>
 
