@@ -93,7 +93,9 @@ export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeP
             <meshStandardMaterial
               color={ball.color}
               roughness={0.2}
-              metalness={0.1}
+              metalness={0.9}
+              emissive={ball.color}
+              emissiveIntensity={0.1}
             />
           </mesh>
         );

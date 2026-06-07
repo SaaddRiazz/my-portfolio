@@ -1,4 +1,31 @@
-/* components/hero.css */
+/* components/hero.css — ARCADE NEON THEME */
+
+@font-face {
+  font-family: 'MarioKartDS';
+  src: url('../fonts/Mario-Kart-DS.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RainyHearts';
+  src: url('../fonts/rainyhearts.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ── CSS Variables ─────────────────────────────────────────────── */
+:root {
+  --neon-purple: #b84fff;
+  --neon-blue:   #00d4ff;
+  --neon-yellow: #ffe600;
+  --neon-pink:   #ff2d78;
+  --bg-deep:     #07050f;
+  --bg-mid:      #0e0a1e;
+  --glow-purple: 0 0 8px #b84fff, 0 0 20px #b84fff55;
+  --glow-blue:   0 0 8px #00d4ff, 0 0 20px #00d4ff55;
+  --glow-yellow: 0 0 8px #ffe600, 0 0 20px #ffe60055;
+}
 
 /* 1. Core Canvas Foundation */
 .hero {
@@ -7,9 +34,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff;
+  background-color: var(--bg-deep);
+  background-image:
+    /* subtle scanline effect */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.012) 3px,
+      rgba(255,255,255,0.012) 4px
+    ),
+    /* radial glow from center */
+    radial-gradient(ellipse 80% 60% at 50% 50%, #1a0a3a 0%, var(--bg-deep) 70%);
   position: relative;
   overflow: hidden;
+}
+
+/* faint grid lines on the floor — depth trick */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* 2. Seamless Matrix Layer Grid Field Wrapper */
@@ -24,63 +75,88 @@
   justify-content: space-between;
   pointer-events: auto;
   user-select: none;
-  /* Tilts row tracking vectors to maintain the requested dense diagonal flow */
-  transform: skewY(-6deg) scale(1.05); 
+  transform: skewY(-6deg) scale(1.05);
+  opacity: 0.45;
 }
 
 /* 3. Hardware Accelerated Inline Row Elements */
 .grid-row {
   display: flex;
   width: max-content;
-  gap: 1.5rem; /* Packing tight margins */
+  gap: 1.5rem;
   white-space: nowrap;
   will-change: transform;
 }
 
-/* Individual Icon Rotation Core Configuration */
+/* Individual Icon Rotation — neon tinted */
 .icon-container {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(45deg); /* Locks visual assets to a 45 degree tilt */
+  transform: rotate(45deg);
   flex-shrink: 0;
-  padding: 1.25rem; /* Expanded hover footprint hit box padding */
   cursor: pointer;
   pointer-events: auto;
   position: relative;
+  color: rgba(0, 212, 255, 0.55);
+  filter: drop-shadow(0 0 3px rgba(0,212,255,0.35));
+  transition: filter 0.15s ease, transform 0.15s ease, color 0.15s ease;
+  padding: 1.25rem;
 }
 
-/* 4. UNIFIED GPU-ACCELERATED NO-SNAP RUNTIME KEYFRAMES */
+/* SVG inherits color from container */
+.icon-container svg {
+  color: inherit;
+  display: block;
+}
+
+/* Hover: massive neon burst — unmissable */
+.icon-container:hover,
+.icon-container.icon-hovered {
+  transform: rotate(45deg) scale(2.5);
+  color: #ffe600;
+  filter:
+    drop-shadow(0 0 8px #ffe600)
+    drop-shadow(0 0 20px #ffe600)
+    drop-shadow(0 0 40px rgba(255,230,0,0.85))
+    brightness(2.5);
+  z-index: 50;
+}
+
+/* 4. GPU-Accelerated scroll */
 .move-left {
   animation: scrollConveyorLeft 55s linear infinite;
 }
 
 @keyframes scrollConveyorLeft {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0); /* Resets exactly halfway through the duplicated sequence */
-  }
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
-/* 5. Foreground Content Panels */
+/* 5. Foreground Content */
 .hero-content {
   position: relative;
   z-index: 10;
   text-align: center;
   max-width: 800px;
   padding: 0 1.5rem;
-  pointer-events: none; 
+  pointer-events: none;
   user-select: none;
 }
 
+/* No ::before pseudo — removed to prevent ghost shapes */
+
 .hero-content h1 {
+  font-family: 'MarioKartDS', 'Segoe UI', sans-serif;
   font-size: 3.5rem;
-  font-weight: 800;
-  color: #000000;
+  font-weight: normal;
+  color: #ffffff;
   margin-bottom: 1rem;
-  letter-spacing: -0.025em;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.6),
+    0 0 30px rgba(184, 79, 255, 0.5),
+    0 0 60px rgba(184, 79, 255, 0.2);
   pointer-events: auto;
 }
 
@@ -91,57 +167,74 @@
 }
 
 .hero-content .name {
-  color: #4f46e5; 
+  color: var(--neon-yellow);
+  text-shadow:
+    0 0 10px var(--neon-yellow),
+    0 0 30px rgba(255, 230, 0, 0.6),
+    0 0 60px rgba(255, 230, 0, 0.3);
 }
 
 .hero-content .subtitle {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: #000000;
+  font-family: 'RainyHearts', monospace;
+  font-size: 1.35rem;
+  font-weight: normal;
+  color: var(--neon-blue);
   margin-bottom: 2rem;
   pointer-events: auto;
+  text-shadow: var(--glow-blue);
+  letter-spacing: 0.06em;
 }
 
 @media (min-width: 768px) {
   .hero-content .subtitle {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
   }
 }
 
 .hero-content .subtitle * {
-  color: #000000 !important;
+  color: var(--neon-blue) !important;
+  text-shadow: var(--glow-blue);
 }
 
-/* 6. Action Button Alignment Interface Profile */
+/* 6. Action Button */
 .view-work-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 2rem;
-  background-color: #00000057;
-  border-color: #000000;
-  color: #ffffff !important;
-  font-weight: 600;
-  border-radius: 0.75rem;
-  border-width: 3px;
+  background-color: transparent;
+  border: 2px solid var(--neon-purple);
+  color: var(--neon-purple) !important;
+  font-family: 'RainyHearts', monospace;
+  font-size: 1rem;
+  font-weight: normal;
+  border-radius: 0;                /* sharp pixel corners */
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
   text-decoration: none;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.1em;
+  box-shadow: var(--glow-purple), inset 0 0 12px rgba(184,79,255,0.08);
   transition: all 0.3s ease;
   pointer-events: auto;
+  position: relative;
+}
+
+/* insert token-slot icon via pseudo */
+.view-work-btn::before {
+  content: '▶';
+  font-size: 0.7em;
+  opacity: 0.7;
 }
 
 .view-work-btn:hover {
-  background-color: #1a1a1a;
-  color: #ffffff !important;
+  background-color: rgba(184, 79, 255, 0.15);
+  color: var(--neon-yellow) !important;
+  border-color: var(--neon-yellow);
+  box-shadow: var(--glow-yellow), inset 0 0 16px rgba(255,230,0,0.08);
   transform: translateY(-2px);
-  border-width: 3px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-  
-  border-color: #000000;
 }
 
 .view-work-btn .arrow {
-  color: #ffffff !important;
+  color: inherit !important;
   transition: transform 0.3s ease;
 }
 

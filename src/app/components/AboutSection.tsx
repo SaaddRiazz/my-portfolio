@@ -16,7 +16,7 @@ export default function AboutSection() {
 
         <div className="about-content">
 
-          {/* LEFT — Bio text with headings to fill height */}
+          {/* grid-area: bio — top-left on desktop, first on mobile */}
           <div className="about-intro">
 
             <p className="skills-label">Who I am</p>
@@ -42,10 +42,19 @@ export default function AboutSection() {
 
           </div>
 
-          {/* RIGHT — Gumball machine */}
+          {/* grid-area: machine — right column on desktop, second on mobile */}
           <div className="skills-grid-container">
             <GumballSkills />
           </div>
+
+          {/* NOTE: The skills-grid div is rendered inside GumballSkills and already
+              carries className="skills-grid". On desktop it sits in grid-area: skills
+              (bottom-left). On mobile it appears below the machine. The GumballSkills
+              component renders the canvas + status + unlock button + skills-grid all
+              inside .gumball-skills-container which lives in the machine grid area.
+              If you want the skills-grid to break out of the machine area on desktop,
+              extract it from GumballSkills into a separate slot here and pass
+              unlocked/skillColors/justUnlocked as props. */}
 
         </div>
       </div>

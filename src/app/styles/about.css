@@ -1,6 +1,34 @@
 /* ==========================================================================
-   ABOUT SECTION — Responsive, Light Minimal Theme (Matching image_74798e.png)
+   ABOUT SECTION — ARCADE NEON THEME  |  Responsive 3-area layout
+   Desktop: [bio text + skills grid] | [gumball machine]
+   Mobile:  bio text → gumball machine → skills grid
    ========================================================================== */
+
+@font-face {
+  font-family: 'MarioKartDS';
+  src: url('../fonts/Mario-Kart-DS.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RainyHearts';
+  src: url('../fonts/rainyhearts.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --neon-purple: #b84fff;
+  --neon-blue:   #00d4ff;
+  --neon-yellow: #ffe600;
+  --bg-deep:     #07050f;
+  --bg-mid:      #0e0a1e;
+  --bg-card:     #110d22;
+  --glow-purple: 0 0 8px #b84fff, 0 0 24px #b84fff44;
+  --glow-blue:   0 0 8px #00d4ff, 0 0 24px #00d4ff44;
+  --glow-yellow: 0 0 8px #ffe600, 0 0 24px #ffe60044;
+}
 
 .about-section,
 .about-section * {
@@ -8,137 +36,196 @@
 }
 
 .about-section {
-  background-color: #ffffff; /* Clean White from image_74798e.png */
-  color: #333333;
-  padding: 3rem 1.25rem 3rem;
+  background-color: var(--bg-deep);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent, transparent 3px,
+      rgba(255,255,255,0.01) 3px, rgba(255,255,255,0.01) 4px
+    ),
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px),
+    radial-gradient(ellipse 90% 70% at 50% 0%, #1a0a3a 0%, var(--bg-deep) 60%);
+  background-size: auto, 48px 48px, 48px 48px, auto;
+  color: #e0d8ff;
+  padding: 5rem 1.25rem 4rem;
   width: 100%;
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: 'RainyHearts', monospace;
   overflow-x: hidden;
 }
 
 .about-wrapper {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
-/* ==========================================================================
-   HEADER
-   ========================================================================== */
-
+/* Header */
 .about-header {
   text-align: center;
 }
 
 .about-header h2 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 900;
+  font-family: 'MarioKartDS', sans-serif;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: normal;
   text-transform: uppercase;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.12em;
   margin: 0;
-  color: #000000; /* Solid Black text */
+  color: #ffffff;
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.7),
+    0 0 30px var(--neon-purple),
+    0 0 60px rgba(184,79,255,0.4);
 }
 
 .about-header::after {
   content: '';
   display: block;
-  width: 48px;
-  height: 4px;
-  background: #5856d6; /* Purple Accent from image_74798e.png */
-  margin: 0.6rem auto 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+  margin: 0.7rem auto 0;
   border-radius: 2px;
+  box-shadow: var(--glow-blue);
 }
 
 /* ==========================================================================
-   TWO-COLUMN LAYOUT
+   MAIN CONTENT GRID
+   Desktop: left col = bio (top) + skills (bottom) | right col = machine
+   Mobile:  bio → machine → skills  (single column)
    ========================================================================== */
 
 .about-content {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
   width: 100%;
-  align-items: start;
+  gap: 1.75rem;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "bio"
+    "machine"
+    "skills";
 }
 
 @media (min-width: 868px) {
   .about-content {
     grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: stretch;
+    grid-template-rows: auto 1fr;
+    column-gap: 3rem;
+    row-gap: 1.75rem;
+    align-items: start;
+    grid-template-areas:
+      "bio     machine"
+      "skills  machine";
   }
 }
 
-/* ==========================================================================
-   LEFT — BIOGRAPHICAL TEXT
-   ========================================================================== */
-
+/* Bio card */
 .about-intro {
+  grid-area: bio;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 1.25rem;
-  height: 100%;
+  background: var(--bg-card);
+  border: 1px solid rgba(184,79,255,0.25);
+  border-radius: 4px;
+  padding: 2rem 1.75rem;
+  box-shadow:
+    0 0 0 1px rgba(0,212,255,0.06) inset,
+    0 8px 32px rgba(0,0,0,0.5),
+    0 0 40px rgba(184,79,255,0.06);
+  position: relative;
+}
+
+.about-intro::before,
+.about-intro::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--neon-yellow);
+  border-style: solid;
+}
+.about-intro::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+  box-shadow: -2px -2px 6px rgba(255,230,0,0.3);
+}
+.about-intro::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
+  box-shadow: 2px 2px 6px rgba(255,230,0,0.3);
 }
 
 .about-intro-heading {
-  font-size: clamp(1.3rem, 3vw, 1.75rem);
-  font-weight: 800;
-  color: #000000;
+  font-family: 'MarioKartDS', sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.45rem);
+  font-weight: normal;
+  color: #ffffff;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 20px rgba(184,79,255,0.5);
 }
 
 .about-intro-heading span {
-  color: #5856d6; /* Purple Accent */
+  color: var(--neon-yellow);
+  text-shadow: var(--glow-yellow);
 }
 
 .about-intro p {
-  font-size: clamp(0.95rem, 1.5vw, 1.1rem);
-  line-height: 1.75;
-  color: #444444; /* Readable Dark Slate Grey */
+  font-family: 'RainyHearts', monospace;
+  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  line-height: 1.9;
+  color: #c5bde0;
   margin: 0;
+  letter-spacing: 0.03em;
 }
 
 .about-intro strong {
-  color: #000000;
-  font-weight: 700;
+  color: var(--neon-blue);
+  font-weight: normal;
+  text-shadow: var(--glow-blue);
 }
 
 .about-intro .callout {
-  font-size: clamp(1rem, 1.6vw, 1.15rem);
-  color: #333333;
-  border-left: 3px solid #5856d6; /* Purple Accent Line */
+  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  color: #d4ccf0;
+  border-left: 3px solid var(--neon-purple);
   padding-left: 1rem;
   margin-top: 0.25rem;
+  box-shadow: -3px 0 12px rgba(184,79,255,0.25);
 }
 
 .about-intro .skills-label {
+  font-family: 'RainyHearts', monospace;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: normal;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #5856d6; /* Purple Subheadings */
+  color: var(--neon-blue);
+  text-shadow: var(--glow-blue);
   margin-top: 0.5rem;
 }
 
-/* ==========================================================================
-   RIGHT — GUMBALL MACHINE + SKILLS
-   ========================================================================== */
+.about-intro .skills-label::before {
+  content: '▶ ';
+  color: var(--neon-yellow);
+}
 
+/* Machine column — spans both grid rows on desktop */
 .skills-grid-container {
+  grid-area: machine;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  height: 100%;
 }
 
 .gumball-skills-container {
@@ -149,41 +236,54 @@
   width: 100%;
 }
 
-/* Canvas */
+/* Canvas — fluid height, never clips */
 .canvas-container {
   width: 100%;
-  height: 42vh;
-  min-height: 280px;
-  max-height: 460px;
+  height: clamp(260px, 48vw, 440px);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 4px;
+  box-shadow:
+    0 0 30px rgba(0,212,255,0.08),
+    inset 0 0 20px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+@media (min-width: 868px) {
+  /* On desktop, let the canvas be taller since the right col has more room */
+  .canvas-container {
+    height: clamp(320px, 36vw, 480px);
+  }
 }
 
 /* Status text */
 .status-message {
-  font-size: 0.85rem;
-  color: #666666;
+  font-family: 'RainyHearts', monospace;
+  font-size: 0.88rem;
+  color: #9e94cc;
   text-align: center;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  letter-spacing: 0.05em;
 }
 
 .status-message strong {
-  color: #000000;
+  color: #ffffff;
+  font-weight: normal;
 }
 
 .status-message .highlight {
-  color: #5856d6;
-  font-weight: 700;
+  color: var(--neon-yellow);
+  text-shadow: var(--glow-yellow);
 }
 
 .success-highlight {
-  color: #24b24b !important; /* Adjusted clean green for light background */
+  color: #00ff88 !important;
+  text-shadow: 0 0 8px #00ff88, 0 0 20px rgba(0,255,136,0.4) !important;
 }
 
-/* ==========================================================================
-   SKILL CARDS — Circular gumballs
-   ========================================================================== */
-
+/* Skills grid — sits in its own grid-area */
 .skills-grid {
+  grid-area: skills;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.6rem;
@@ -192,7 +292,6 @@
 
 @media (max-width: 400px) {
   .skills-grid {
-    grid-template-columns: repeat(5, 1fr);
     gap: 0.4rem;
   }
 }
@@ -204,33 +303,37 @@
   justify-content: center;
   gap: 0.3rem;
   padding: 0.5rem 0.2rem 0.6rem;
-
-  /* Circle shape */
   border-radius: 50%;
   aspect-ratio: 1 / 1;
   width: 100%;
+  border: 2px solid rgba(184,79,255,0.3);
+  background: var(--bg-card);
+  position: relative;
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
 
-  /* Styled using button gray values from image_74798e.png */
-  border: 2px solid #aaaaaa; 
-  background: #f4f4f4;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-              background 0.4s ease,
-              border-color 0.4s ease,
-              box-shadow 0.4s ease;
+.skill-card:not(.unlocked):hover {
+  border-color: rgba(184,79,255,0.6);
+  box-shadow: 0 0 12px rgba(184,79,255,0.2);
 }
 
 .skill-card.unlocked {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: transparent;
 }
 
 .skill-card.unlocked .skill-name {
-  color: #ffffff; /* White text on high-contrast vivid balls */
+  color: #ffffff;
 }
 
 .skill-card.newly-unlocked {
   transform: scale(1.15);
-  box-shadow: 0 6px 20px rgba(88, 86, 214, 0.4);
+  box-shadow:
+    0 0 20px var(--neon-purple),
+    0 0 40px rgba(184,79,255,0.4);
 }
 
 .icon-wrapper {
@@ -245,20 +348,22 @@
   width: 100% !important;
   height: auto !important;
   object-fit: contain;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
 }
 
 .lock-placeholder {
   font-size: clamp(0.9rem, 2vw, 1.1rem);
-  opacity: 0.6;
+  opacity: 0.4;
+  filter: drop-shadow(0 0 4px var(--neon-purple));
 }
 
 .skill-name {
-  font-size: clamp(0.45rem, 1vw, 0.65rem);
-  font-weight: 700;
-  color: #333333;
+  font-family: 'RainyHearts', monospace;
+  font-size: clamp(0.45rem, 1vw, 0.6rem);
+  font-weight: normal;
+  color: #7a6fa8;
   text-align: center;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
@@ -267,28 +372,45 @@
 }
 
 .locked-text {
-  color: #777777;
-  letter-spacing: 0.05em;
+  color: #4a4468;
+  letter-spacing: 0.08em;
 }
 
-/* ==========================================================================
-   TOAST
-   ========================================================================== */
+.unlock-all-btn {
+  font-family: 'RainyHearts', monospace !important;
+  letter-spacing: 0.08em;
+  border-radius: 0 !important;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  background: linear-gradient(135deg, #b84fff 0%, #00d4ff 100%) !important;
+  border: none !important;
+  color: #07050f !important;
+  text-shadow: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
 
+.unlock-all-btn:hover {
+  background: linear-gradient(135deg, #ffe600 0%, #b84fff 100%) !important;
+  box-shadow: 0 0 20px rgba(255,230,0,0.5), 0 0 40px rgba(184,79,255,0.3) !important;
+}
+
+/* Toast */
 .gumball-toast {
   position: fixed;
   bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background: #ffffff;
-  border: 2px solid #5856d6;
-  border-radius: 30px;
-  padding: 0.55rem 1.4rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #000000;
+  background: var(--bg-mid);
+  border: 1px solid var(--neon-purple);
+  border-radius: 0;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  padding: 0.6rem 1.6rem;
+  font-family: 'RainyHearts', monospace;
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: #ffffff;
+  letter-spacing: 0.06em;
   z-index: 9999;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--glow-purple);
   white-space: nowrap;
   animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
