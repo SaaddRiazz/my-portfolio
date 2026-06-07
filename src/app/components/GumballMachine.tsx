@@ -19,7 +19,6 @@ const skills = [
   { name: 'Git',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg' },
 ];
 
-// Vivid gumball colors — one assigned per skill on unlock
 const GUMBALL_COLORS = [
   '#FF3CAC', '#FF7C2A', '#FFD600', '#00E676',
   '#00B0FF', '#D500F9', '#FF1744', '#69F0AE',
@@ -27,12 +26,18 @@ const GUMBALL_COLORS = [
 ];
 
 // ── Animated falling gumball ─────────────────────────────────────
-function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
+function GumballBall({ 
+  color, 
+  onComplete 
+}: { 
+  color: string; 
+  onComplete: () => void; 
+}) {
   const ref = useRef<any>(null);
   const progress = useRef(0);
 
   useFrame((_, delta) => {
-    progress.current += delta * 0.55;
+    progress.current += delta * 1; // Falling speed
     const t = Math.min(progress.current, 1);
 
     const radius = 0.15;
@@ -63,26 +68,18 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
 }
 
 // ── Machine model ────────────────────────────────────────────────
-// Added unlockedCount props so FilledGlobe can access it safely
 function GumballMachineModel({ 
   onCrankClick, 
-  unlockedCount 
+  unlockedCount,
+  balls,
+  removeBall
 }: { 
   onCrankClick: () => void; 
   unlockedCount: number; 
+  balls: Array<{ id: number; color: string; skillIndex: number }>;
+  removeBall: (id: number, skillIndex: number) => void;
 }) {
   const { scene } = useGLTF('/models/gumball-machine-transformed.glb');
-  const [balls, setBalls] = useState<Array<{ id: number; color: string }>>([]);
-
-  function spawnBall() {
-    const id = Date.now();
-    const color = GUMBALL_COLORS[Math.floor(Math.random() * GUMBALL_COLORS.length)];
-    setBalls(prev => [...prev, { id, color }]);
-  }
-
-  function removeBall(id: number) {
-    setBalls(prev => prev.filter(b => b.id !== id));
-  }
 
   return (
     <>
@@ -93,44 +90,51 @@ function GumballMachineModel({
         rotation={[0, 0, 0]}
         onClick={(e: any) => {
           e.stopPropagation();
-          spawnBall();
-          onCrankClick();
+          onCrankClick(); // Direct trigger lets users spam clicks fast
         }}
       />
       {balls.map(ball => (
         <GumballBall
           key={ball.id}
           color={ball.color}
-          onComplete={() => removeBall(ball.id)}
+          onComplete={() => removeBall(ball.id, ball.skillIndex)}
         />
       ))}
 
-      {/* Moved FilledGlobe inside the Model environment where its positions coordinate natively */}
       <FilledGlobe unlockedCount={unlockedCount} totalSkills={skills.length} />
     </>
   );
 }
 
 // ── Canvas ────────────────────────────────────────────────────────
-// Added unlockedCount to pass it down through the Canvas tree
 function ModelCanvas({ 
   onCrankClick, 
-  unlockedCount 
+  unlockedCount,
+  balls,
+  removeBall
 }: { 
   onCrankClick: () => void; 
   unlockedCount: number; 
+  balls: Array<{ id: number; color: string; skillIndex: number }>;
+  removeBall: (id: number, skillIndex: number) => void;
 }) {
   return (
     <div className="canvas-container">
       <Canvas
-        camera={{ position: [0, 0, 4], fov: 50 }}
+        orthographic 
+        camera={{ position: [0, 0, 4], zoom: 120, near: 0.1, far: 1000 }}
         onClick={(e) => e.stopPropagation()}
       >
         <ambientLight intensity={2.5} />
         <directionalLight position={[0, 10, 8]}  intensity={2.0} />
-        <directionalLight position={[-5, 5, 5]}  intensity={1.0} />
+        <directionalLight position={[-5, 5, 5]}  intensity={2.0} />
         <pointLight       position={[0, 3, 4]}   intensity={1.5} color="#ffffff" />
-        <GumballMachineModel onCrankClick={onCrankClick} unlockedCount={unlockedCount} />
+        <GumballMachineModel 
+          onCrankClick={onCrankClick} 
+          unlockedCount={unlockedCount} 
+          balls={balls}
+          removeBall={removeBall}
+        />
       </Canvas>
     </div>
   );
@@ -140,11 +144,13 @@ function ModelCanvas({
 export default function GumballSkills() {
   const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
   const [skillColors, setSkillColors]   = useState<Record<number, string>>({});
-  const [spinning, setSpinning]         = useState(false);
-  const [toast, setToast]               = useState('');
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
+  const [toast, setToast]               = useState('');
+  const [balls, setBalls]               = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
+  
+  // Track backend allocations immediately so spamming clicks doesn't pick the same skill twice
+  const reservedSkillsRef = useRef<Set<number>>(new Set());
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lockRef    = useRef(false);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -152,42 +158,66 @@ export default function GumballSkills() {
     toastTimer.current = setTimeout(() => setToast(''), 2400);
   }
 
-  function handleCrankClick() {
-    if (spinning || lockRef.current) return;
+  // Called ONLY when the ball finishes rolling out of the tube
+  function handleBallComplete(ballId: number, skillIndex: number) {
+    // 1. Remove ball from rendering array
+    setBalls(prev => prev.filter(b => b.id !== ballId));
 
-    const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
-    if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
+    // 2. Commit the unlock to the state so it flashes and reveals on the UI grid
+    setUnlocked(prev => new Set([...prev, skillIndex]));
+    setJustUnlocked(skillIndex);
+    showToast(`Unlocked: ${skills[skillIndex].name}!`);
 
-    lockRef.current = true;
-    setSpinning(true);
-
-    setTimeout(() => {
-      const idx = locked[Math.floor(Math.random() * locked.length)];
-
-      // Assign a unique gumball color to this skill
-      const usedColors = Object.values(skillColors);
-      const available = GUMBALL_COLORS.filter(c => !usedColors.includes(c));
-      const color = available.length > 0
-        ? available[Math.floor(Math.random() * available.length)]
-        : GUMBALL_COLORS[idx % GUMBALL_COLORS.length];
-
-      setSkillColors(prev => ({ ...prev, [idx]: color }));
-      setUnlocked(prev => new Set([...prev, idx]));
-      setJustUnlocked(idx);
-      showToast(`Unlocked: ${skills[idx].name}!`);
-      setSpinning(false);
-      lockRef.current = false;
-      setTimeout(() => setJustUnlocked(null), 800);
-    }, 2000);
+    setTimeout(() => setJustUnlocked(null), 800);
   }
 
+  // Fires instantly when clicking the crank
+  function handleCrankClick() {
+    // Check against what is locked on the backend (including things currently rolling in tubes)
+    const locked = skills
+      .map((_, i) => i)
+      .filter(i => !unlocked.has(i) && !reservedSkillsRef.current.has(i));
+
+    if (!locked.length) {
+      // If everything is already in transit or fully unlocked, do nothing
+      if (unlocked.size < skills.length) return;
+      showToast('All skills unlocked! 🎉');
+      return;
+    }
+
+    // Immediately pick a random skill from what remains on the backend
+    const randomSkillIdx = locked[Math.floor(Math.random() * locked.length)];
+    reservedSkillsRef.current.add(randomSkillIdx);
+
+    // Pick a non-duplicate color mapping for it instantly
+    const usedColors = Object.values(skillColors);
+    const available = GUMBALL_COLORS.filter(c => !usedColors.includes(c));
+    const ballColor = available.length > 0
+      ? available[Math.floor(Math.random() * available.length)]
+      : GUMBALL_COLORS[randomSkillIdx % GUMBALL_COLORS.length];
+
+    // Save color configuration mapping instantly
+    setSkillColors(prev => ({ ...prev, [randomSkillIdx]: ballColor }));
+
+    // Spawn the ball instantly with its color and its target skill index attached
+    setBalls(prev => [
+      ...prev, 
+      { id: Date.now() + Math.random(), color: ballColor, skillIndex: randomSkillIdx }
+    ]);
+  }
+
+  // Globes and status counters drop as things actually unlock on screen
   const remaining = skills.length - unlocked.size;
 
   return (
     <div className="gumball-skills-container">
 
-      {/* Passing down the size of the unlocked Set directly here */}
-      <ModelCanvas onCrankClick={handleCrankClick} unlockedCount={unlocked.size} />
+      <ModelCanvas 
+        onCrankClick={handleCrankClick} 
+        unlockedCount={unlocked.size} 
+        balls={balls}
+        removeBall={handleBallComplete}
+      />
 
       <p className="status-message">
         {remaining > 0
