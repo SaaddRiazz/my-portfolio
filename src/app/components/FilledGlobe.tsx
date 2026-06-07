@@ -6,27 +6,35 @@ const GUMBALL_COLORS = [
   '#40C4FF', '#FFAB40',
 ];
 
-export default function FilledGlobe() {
+interface FilledGlobeProps {
+  unlockedCount: number; // Pass unlocked.size from your parent state
+  totalSkills: number;   // Pass skills.length (10) from your parent state
+}
+
+export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeProps) {
   const staticBalls = useMemo(() => {
-    const balls: Array<{ id: number; position: [number, number, number]; color: string }> = [];
+    const balls: Array<{ 
+      id: number; 
+      position: [number, number, number]; 
+      color: string; 
+      threshold: 'always' | 'removeAt30' | 'removeAt70' 
+    }> = [];
+    
     const MAX_RADIUS = 0.55;
-    const BALL_DIAMETER = 0.08; // 2 * radius (0.055) to avoid overlapping
+    const BALL_DIAMETER = 0.06; // 2 * radius (0.055)
     
     const centerX = 0.04;
     const centerY = 1.1;
     const centerZ = 0;
 
-    // Try generating up to 1000 candidate positions to fill the space efficiently
-    for (let attempts = 0; attempts < 1000; attempts++) {
-      // Create a semi-circle angle (bottom half: Math.PI to 2*Math.PI)
-      const theta = Math.PI + Math.random() * Math.PI;
+    for (let attempts = 0; attempts < 600; attempts++) {
+      const theta = Math.PI + Math.random() * Math.PI; // Pure semi-circle bottom arc
       const r = Math.sqrt(Math.random()) * MAX_RADIUS;
 
       const x = centerX + r * Math.cos(theta);
       const y = centerY + r * Math.sin(theta);
       const z = centerZ;
 
-      // Check distance against every ball already accepted into the pile
       let overlapping = false;
       for (const existingBall of balls) {
         const dx = x - existingBall.position[0];
@@ -39,31 +47,57 @@ export default function FilledGlobe() {
         }
       }
 
-      // Only add the ball if it has enough breathing room
       if (!overlapping) {
         const randomColor = GUMBALL_COLORS[Math.floor(Math.random() * GUMBALL_COLORS.length)];
+        
+        // ── Assign Static Threshold Group Based on Height/Position ──
+        // Higher relative Y values get designated to vanish first
+        const heightOffset = y - centerY; 
+        let threshold: 'always' | 'removeAt30' | 'removeAt70' = 'always';
+
+        if (heightOffset > -0.1) {
+          threshold = 'removeAt30'; // Top layer of the semi-circle drops out at 30%
+        } else if (heightOffset > -0.30) {
+          threshold = 'removeAt70'; // Middle layer drops out at 70%
+        }
+
         balls.push({
           id: balls.length,
           position: [x, y, z],
-          color: randomColor
+          color: randomColor,
+          threshold
         });
       }
     }
     return balls;
   }, []);
 
+  // Calculate percentage dynamically based on current state
+  const unlockPercentage = (unlockedCount / totalSkills) * 100;
+
   return (
     <group>
-      {staticBalls.map((ball) => (
-        <mesh key={ball.id} position={ball.position}>
-          <sphereGeometry args={[0.055, 16, 16]} />
-          <meshStandardMaterial
-            color={ball.color}
-            roughness={0}
-            metalness={0.1}
-          />
-        </mesh>
-      ))}
+      {staticBalls.map((ball) => {
+        // 1. If 100% unlocked, all static background balls disappear completely
+        if (unlockPercentage >= 100) return null;
+
+        // 2. If >= 70% unlocked, remove the top layer AND the middle layer
+        if (unlockPercentage >= 70 && (ball.threshold === 'removeAt30' || ball.threshold === 'removeAt70')) return null;
+
+        // 3. If >= 30% unlocked, remove just the top layer
+        if (unlockPercentage >= 30 && ball.threshold === 'removeAt30') return null;
+
+        return (
+          <mesh key={ball.id} position={ball.position}>
+            <sphereGeometry args={[0.055, 8, 8]} />
+            <meshStandardMaterial
+              color={ball.color}
+              roughness={0.2}
+              metalness={0.1}
+            />
+          </mesh>
+        );
+      })}
     </group>
   );
 }

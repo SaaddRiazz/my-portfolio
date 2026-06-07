@@ -63,7 +63,14 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
 }
 
 // ── Machine model ────────────────────────────────────────────────
-function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void }) {
+// Added unlockedCount props so FilledGlobe can access it safely
+function GumballMachineModel({ 
+  onCrankClick, 
+  unlockedCount 
+}: { 
+  onCrankClick: () => void; 
+  unlockedCount: number; 
+}) {
   const { scene } = useGLTF('/models/gumball-machine-transformed.glb');
   const [balls, setBalls] = useState<Array<{ id: number; color: string }>>([]);
 
@@ -97,12 +104,22 @@ function GumballMachineModel({ onCrankClick }: { onCrankClick: () => void }) {
           onComplete={() => removeBall(ball.id)}
         />
       ))}
+
+      {/* Moved FilledGlobe inside the Model environment where its positions coordinate natively */}
+      <FilledGlobe unlockedCount={unlockedCount} totalSkills={skills.length} />
     </>
   );
 }
 
 // ── Canvas ────────────────────────────────────────────────────────
-function ModelCanvas({ onCrankClick }: { onCrankClick: () => void }) {
+// Added unlockedCount to pass it down through the Canvas tree
+function ModelCanvas({ 
+  onCrankClick, 
+  unlockedCount 
+}: { 
+  onCrankClick: () => void; 
+  unlockedCount: number; 
+}) {
   return (
     <div className="canvas-container">
       <Canvas
@@ -113,8 +130,7 @@ function ModelCanvas({ onCrankClick }: { onCrankClick: () => void }) {
         <directionalLight position={[0, 10, 8]}  intensity={2.0} />
         <directionalLight position={[-5, 5, 5]}  intensity={1.0} />
         <pointLight       position={[0, 3, 4]}   intensity={1.5} color="#ffffff" />
-        <GumballMachineModel onCrankClick={onCrankClick} />
-        <FilledGlobe/>
+        <GumballMachineModel onCrankClick={onCrankClick} unlockedCount={unlockedCount} />
       </Canvas>
     </div>
   );
@@ -170,7 +186,8 @@ export default function GumballSkills() {
   return (
     <div className="gumball-skills-container">
 
-      <ModelCanvas onCrankClick={handleCrankClick} />
+      {/* Passing down the size of the unlocked Set directly here */}
+      <ModelCanvas onCrankClick={handleCrankClick} unlockedCount={unlocked.size} />
 
       <p className="status-message">
         {remaining > 0
