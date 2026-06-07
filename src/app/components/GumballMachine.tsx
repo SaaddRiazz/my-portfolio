@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import Image from 'next/image';
+import FilledGlobe from './FilledGlobe';
 
 const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
@@ -24,6 +25,7 @@ const GUMBALL_COLORS = [
   '#00B0FF', '#D500F9', '#FF1744', '#69F0AE',
   '#40C4FF', '#FFAB40',
 ];
+
 // ── Animated falling gumball ─────────────────────────────────────
 function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
   const ref = useRef<any>(null);
@@ -55,7 +57,7 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
   return (
     <mesh ref={ref}>
       <sphereGeometry args={[0.055, 16, 16]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.2} metalness={0.1} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} roughness={0} metalness={1} />
     </mesh>
   );
 }
@@ -112,6 +114,7 @@ function ModelCanvas({ onCrankClick }: { onCrankClick: () => void }) {
         <directionalLight position={[-5, 5, 5]}  intensity={1.0} />
         <pointLight       position={[0, 3, 4]}   intensity={1.5} color="#ffffff" />
         <GumballMachineModel onCrankClick={onCrankClick} />
+        <FilledGlobe/>
       </Canvas>
     </div>
   );
