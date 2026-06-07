@@ -25,7 +25,6 @@ const GUMBALL_COLORS = [
   '#40C4FF', '#FFAB40',
 ];
 
-// Helper function to check contrast color dynamically based on background hex
 function getContrastColor(hexColor: string): string {
   if (!hexColor || hexColor === 'transparent') return '#ffffff';
   const hex = hexColor.replace('#', '');
@@ -36,14 +35,12 @@ function getContrastColor(hexColor: string): string {
   return yiq >= 155 ? '#121212' : '#ffffff';
 }
 
+// Pre-load both models to prevent visual stutter during asset swapping
+useGLTF.preload('/models/gumball-machine-transformed.glb');
+useGLTF.preload('/models/gumball-machine-broken-transformed.glb');
+
 // ── Animated falling gumball ─────────────────────────────────────
-function GumballBall({ 
-  color, 
-  onComplete 
-}: { 
-  color: string; 
-  onComplete: () => void; 
-}) {
+function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
   const ref = useRef<any>(null);
   const progress = useRef(0);
 
@@ -81,16 +78,18 @@ function GumballBall({
 // ── Machine model ────────────────────────────────────────────────
 function GumballMachineModel({ 
   onCrankClick, 
-  allocatedCount, // SYNC FIX: Uses allocatedCount instead of unlockedCount
+  allocatedCount,
   balls,
-  removeBall
+  removeBall,
+  modelPath // Dynamic model asset reference path pointer
 }: { 
   onCrankClick: () => void; 
   allocatedCount: number; 
   balls: Array<{ id: number; color: string; skillIndex: number }>;
   removeBall: (id: number, skillIndex: number) => void;
+  modelPath: string;
 }) {
-  const { scene } = useGLTF('/models/gumball-machine-transformed.glb');
+  const { scene } = useGLTF(modelPath);
 
   return (
     <>
@@ -112,7 +111,6 @@ function GumballMachineModel({
         />
       ))}
 
-      {/* Globe responds instantly to the allocatedCount */}
       <FilledGlobe unlockedCount={allocatedCount} totalSkills={skills.length} />
     </>
   );
@@ -121,14 +119,16 @@ function GumballMachineModel({
 // ── Canvas ────────────────────────────────────────────────────────
 function ModelCanvas({ 
   onCrankClick, 
-  allocatedCount, // SYNC FIX: Bubbled up change
+  allocatedCount,
   balls,
-  removeBall
+  removeBall,
+  modelPath
 }: { 
   onCrankClick: () => void; 
   allocatedCount: number; 
   balls: Array<{ id: number; color: string; skillIndex: number }>;
   removeBall: (id: number, skillIndex: number) => void;
+  modelPath: string;
 }) {
   return (
     <div className="canvas-container">
@@ -146,6 +146,7 @@ function ModelCanvas({
           allocatedCount={allocatedCount} 
           balls={balls}
           removeBall={removeBall}
+          modelPath={modelPath}
         />
       </Canvas>
     </div>
@@ -159,13 +160,12 @@ export default function GumballSkills() {
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
   const [toast, setToast]               = useState('');
   const [balls, setBalls]               = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
-  
-  // Track backend allocations immediately so user spam clicks don't re-roll the same skill
-  const reservedSkillsRef = useRef<Set<number>>(new Set());
-  
-  // SYNC FIX: A reactive state counter representing active + complete unlocks to feed into the 3D globe instantly
   const [allocatedCount, setAllocatedCount] = useState(0);
   
+  // Track active 3D model asset path
+  const [modelPath, setModelPath] = useState('/models/gumball-machine-transformed.glb');
+  
+  const reservedSkillsRef = useRef<Set<number>>(new Set());
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function showToast(msg: string) {
@@ -176,15 +176,17 @@ export default function GumballSkills() {
 
   function handleBallComplete(ballId: number, skillIndex: number) {
     setBalls(prev => prev.filter(b => b.id !== ballId));
-
     setUnlocked(prev => new Set([...prev, skillIndex]));
     setJustUnlocked(skillIndex);
     showToast(`Unlocked: ${skills[skillIndex].name}!`);
-
     setTimeout(() => setJustUnlocked(null), 800);
   }
 
+  // Regular single rolling crank handle behavior
   function handleCrankClick() {
+    // If broken model is loaded, disable single cranks
+    if (modelPath.includes('broken')) return;
+
     const locked = skills
       .map((_, i) => i)
       .filter(i => !unlocked.has(i) && !reservedSkillsRef.current.has(i));
@@ -197,8 +199,6 @@ export default function GumballSkills() {
 
     const randomSkillIdx = locked[Math.floor(Math.random() * locked.length)];
     reservedSkillsRef.current.add(randomSkillIdx);
-
-    // SYNC FIX: Increment allocated count instantly upon user crank click
     setAllocatedCount(prev => prev + 1);
 
     const usedColors = Object.values(skillColors);
@@ -215,6 +215,45 @@ export default function GumballSkills() {
     ]);
   }
 
+  // Instantly unlocks everything, clears globe layout, and modifies the 3D model path mesh mapping
+  function handleUnlockAll() {
+    if (unlocked.size === skills.length) {
+      showToast('All skills are already unlocked! 🎉');
+      return;
+    }
+
+    // 1. Immediately wipe any running falling pipeline balls in mid-air
+    setBalls([]);
+
+    // 2. Map distinct colors to any remaining locked entries instantly
+    const newColors: Record<number, string> = { ...skillColors };
+    const allSkillIndexes = skills.map((_, i) => i);
+    
+    allSkillIndexes.forEach(idx => {
+      if (!newColors[idx]) {
+        const usedColors = Object.values(newColors);
+        const available = GUMBALL_COLORS.filter(c => !usedColors.includes(c));
+        newColors[idx] = available.length > 0
+          ? available[Math.floor(Math.random() * available.length)]
+          : GUMBALL_COLORS[idx % GUMBALL_COLORS.length];
+      }
+      reservedSkillsRef.current.add(idx);
+    });
+
+    setSkillColors(newColors);
+
+    // 3. Scale globe percentage counter to maximum so all background static balls clear out instantly
+    setAllocatedCount(skills.length);
+
+    // 4. Update UI grid states simultaneously
+    setUnlocked(new Set(allSkillIndexes));
+    
+    // 5. Swap out standard model asset mesh for broken configuration asset mapping
+    setModelPath('/models/gumball-machine-broken-transformed.glb');
+    
+    showToast('Boom! Machine broken, all skills unlocked! 🛠️💥');
+  }
+
   const remaining = skills.length - unlocked.size;
 
   return (
@@ -222,16 +261,49 @@ export default function GumballSkills() {
 
       <ModelCanvas 
         onCrankClick={handleCrankClick} 
-        allocatedCount={allocatedCount} // SYNC FIX: Updates instantly on click event
+        allocatedCount={allocatedCount} 
         balls={balls}
         removeBall={handleBallComplete}
+        modelPath={modelPath} // Passed downward dynamically
       />
 
-      <p className="status-message">
-        {remaining > 0
-          ? <>Click the <strong>crank</strong> to unlock — <span className="highlight">{remaining}</span> remaining</>
-          : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
-      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+        <p className="status-message" style={{ margin: 0 }}>
+          {remaining > 0
+            ? <>Click the <strong>crank</strong> to unlock — <span className="highlight">{remaining}</span> remaining</>
+            : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
+        </p>
+
+        {/* The Unlock All Action Handler Button Component Elements */}
+        {remaining > 0 && (
+          <button
+            onClick={handleUnlockAll}
+            className="unlock-all-btn"
+            style={{
+              padding: '10px 20px',
+              fontSize: '14px',
+              fontWeight: '700',
+              color: '#ffffff',
+              background: 'linear-gradient(135deg, #FF1744 0%, #D500F9 100%)',
+              border: 'none',
+              borderRadius: '30px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(213, 0, 249, 0.4)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.04)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(213, 0, 249, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 15px rgba(213, 0, 249, 0.4)';
+            }}
+          >
+            💥 Smash Machine (Unlock All)
+          </button>
+        )}
+      </div>
 
       <div className="skills-grid">
         {skills.map((s, i) => {
