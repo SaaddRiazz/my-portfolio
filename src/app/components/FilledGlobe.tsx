@@ -55,7 +55,7 @@ export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeP
         const heightOffset = y - centerY; 
         let threshold: 'always' | 'removeAt30' | 'removeAt70' = 'always';
 
-        if (heightOffset > -0.1) {
+        if (heightOffset > -0.10) {
           threshold = 'removeAt30'; // Top layer of the semi-circle drops out at 30%
         } else if (heightOffset > -0.30) {
           threshold = 'removeAt70'; // Middle layer drops out at 70%

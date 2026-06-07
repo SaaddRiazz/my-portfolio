@@ -25,6 +25,17 @@ const GUMBALL_COLORS = [
   '#40C4FF', '#FFAB40',
 ];
 
+// Helper function to check contrast color dynamically based on background hex
+function getContrastColor(hexColor: string): string {
+  if (!hexColor || hexColor === 'transparent') return '#ffffff';
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.length === 3 ? hex[0] + hex[0] : hex.substring(0, 2), 16);
+  const g = parseInt(hex.length === 3 ? hex[1] + hex[1] : hex.substring(2, 4), 16);
+  const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 155 ? '#121212' : '#ffffff';
+}
+
 // ── Animated falling gumball ─────────────────────────────────────
 function GumballBall({ 
   color, 
@@ -37,7 +48,7 @@ function GumballBall({
   const progress = useRef(0);
 
   useFrame((_, delta) => {
-    progress.current += delta * 1; // Falling speed
+    progress.current += delta * 1;
     const t = Math.min(progress.current, 1);
 
     const radius = 0.15;
@@ -52,8 +63,8 @@ function GumballBall({
 
     if (ref.current) {
       ref.current.position.set(x, y, z);
-      ref.current.rotation.x += delta * 8;
-      ref.current.rotation.z += delta * 5;
+      ref.current.rotation.x += delta * 16;
+      ref.current.rotation.z += delta * 10;
     }
 
     if (t >= 1) onComplete();
@@ -70,12 +81,12 @@ function GumballBall({
 // ── Machine model ────────────────────────────────────────────────
 function GumballMachineModel({ 
   onCrankClick, 
-  unlockedCount,
+  allocatedCount, // SYNC FIX: Uses allocatedCount instead of unlockedCount
   balls,
   removeBall
 }: { 
   onCrankClick: () => void; 
-  unlockedCount: number; 
+  allocatedCount: number; 
   balls: Array<{ id: number; color: string; skillIndex: number }>;
   removeBall: (id: number, skillIndex: number) => void;
 }) {
@@ -90,7 +101,7 @@ function GumballMachineModel({
         rotation={[0, 0, 0]}
         onClick={(e: any) => {
           e.stopPropagation();
-          onCrankClick(); // Direct trigger lets users spam clicks fast
+          onCrankClick();
         }}
       />
       {balls.map(ball => (
@@ -101,7 +112,8 @@ function GumballMachineModel({
         />
       ))}
 
-      <FilledGlobe unlockedCount={unlockedCount} totalSkills={skills.length} />
+      {/* Globe responds instantly to the allocatedCount */}
+      <FilledGlobe unlockedCount={allocatedCount} totalSkills={skills.length} />
     </>
   );
 }
@@ -109,12 +121,12 @@ function GumballMachineModel({
 // ── Canvas ────────────────────────────────────────────────────────
 function ModelCanvas({ 
   onCrankClick, 
-  unlockedCount,
+  allocatedCount, // SYNC FIX: Bubbled up change
   balls,
   removeBall
 }: { 
   onCrankClick: () => void; 
-  unlockedCount: number; 
+  allocatedCount: number; 
   balls: Array<{ id: number; color: string; skillIndex: number }>;
   removeBall: (id: number, skillIndex: number) => void;
 }) {
@@ -131,7 +143,7 @@ function ModelCanvas({
         <pointLight       position={[0, 3, 4]}   intensity={1.5} color="#ffffff" />
         <GumballMachineModel 
           onCrankClick={onCrankClick} 
-          unlockedCount={unlockedCount} 
+          allocatedCount={allocatedCount} 
           balls={balls}
           removeBall={removeBall}
         />
@@ -148,8 +160,12 @@ export default function GumballSkills() {
   const [toast, setToast]               = useState('');
   const [balls, setBalls]               = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
   
-  // Track backend allocations immediately so spamming clicks doesn't pick the same skill twice
+  // Track backend allocations immediately so user spam clicks don't re-roll the same skill
   const reservedSkillsRef = useRef<Set<number>>(new Set());
+  
+  // SYNC FIX: A reactive state counter representing active + complete unlocks to feed into the 3D globe instantly
+  const [allocatedCount, setAllocatedCount] = useState(0);
+  
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function showToast(msg: string) {
@@ -158,12 +174,9 @@ export default function GumballSkills() {
     toastTimer.current = setTimeout(() => setToast(''), 2400);
   }
 
-  // Called ONLY when the ball finishes rolling out of the tube
   function handleBallComplete(ballId: number, skillIndex: number) {
-    // 1. Remove ball from rendering array
     setBalls(prev => prev.filter(b => b.id !== ballId));
 
-    // 2. Commit the unlock to the state so it flashes and reveals on the UI grid
     setUnlocked(prev => new Set([...prev, skillIndex]));
     setJustUnlocked(skillIndex);
     showToast(`Unlocked: ${skills[skillIndex].name}!`);
@@ -171,42 +184,37 @@ export default function GumballSkills() {
     setTimeout(() => setJustUnlocked(null), 800);
   }
 
-  // Fires instantly when clicking the crank
   function handleCrankClick() {
-    // Check against what is locked on the backend (including things currently rolling in tubes)
     const locked = skills
       .map((_, i) => i)
       .filter(i => !unlocked.has(i) && !reservedSkillsRef.current.has(i));
 
     if (!locked.length) {
-      // If everything is already in transit or fully unlocked, do nothing
       if (unlocked.size < skills.length) return;
       showToast('All skills unlocked! 🎉');
       return;
     }
 
-    // Immediately pick a random skill from what remains on the backend
     const randomSkillIdx = locked[Math.floor(Math.random() * locked.length)];
     reservedSkillsRef.current.add(randomSkillIdx);
 
-    // Pick a non-duplicate color mapping for it instantly
+    // SYNC FIX: Increment allocated count instantly upon user crank click
+    setAllocatedCount(prev => prev + 1);
+
     const usedColors = Object.values(skillColors);
     const available = GUMBALL_COLORS.filter(c => !usedColors.includes(c));
     const ballColor = available.length > 0
       ? available[Math.floor(Math.random() * available.length)]
       : GUMBALL_COLORS[randomSkillIdx % GUMBALL_COLORS.length];
 
-    // Save color configuration mapping instantly
     setSkillColors(prev => ({ ...prev, [randomSkillIdx]: ballColor }));
 
-    // Spawn the ball instantly with its color and its target skill index attached
     setBalls(prev => [
       ...prev, 
       { id: Date.now() + Math.random(), color: ballColor, skillIndex: randomSkillIdx }
     ]);
   }
 
-  // Globes and status counters drop as things actually unlock on screen
   const remaining = skills.length - unlocked.size;
 
   return (
@@ -214,7 +222,7 @@ export default function GumballSkills() {
 
       <ModelCanvas 
         onCrankClick={handleCrankClick} 
-        unlockedCount={unlocked.size} 
+        allocatedCount={allocatedCount} // SYNC FIX: Updates instantly on click event
         balls={balls}
         removeBall={handleBallComplete}
       />
@@ -230,19 +238,27 @@ export default function GumballSkills() {
           const isUnlocked = unlocked.has(i);
           const isNew = justUnlocked === i;
           const bgColor = skillColors[i] || 'transparent';
+          const textColor = getContrastColor(bgColor);
 
           return (
             <div
               key={s.name}
               className={`skill-card${isNew ? ' newly-unlocked' : ''}${isUnlocked ? ' unlocked' : ''}`}
-              style={isUnlocked ? { background: bgColor, borderColor: bgColor } : {}}
+              style={isUnlocked ? { 
+                background: bgColor, 
+                borderColor: bgColor,
+                color: textColor,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.2)'
+              } : {}}
             >
               {isUnlocked ? (
                 <>
-                  <div className="icon-wrapper">
-                    <Image src={s.icon} alt={s.name} width={36} height={36} unoptimized />
+                  <div className="icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.92)', padding: '5px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Image src={s.icon} alt={s.name} width={28} height={28} unoptimized />
                   </div>
-                  <span className="skill-name">{s.name}</span>
+                  <span className="skill-name" style={{ fontWeight: '600', textShadow: textColor === '#ffffff' ? '0 1px 2px rgba(0,0,0,0.15)' : 'none' }}>
+                    {s.name}
+                  </span>
                 </>
               ) : (
                 <>
