@@ -27,6 +27,9 @@
   --glow-yellow: 0 0 8px #ffe600, 0 0 20px #ffe60055;
 }
 
+body{
+  background-color: var(--bg-deep);
+}
 /* ── Base nav — STICKY ──────────────────────────────────────────────────── */
 .navbar {
   position: sticky;

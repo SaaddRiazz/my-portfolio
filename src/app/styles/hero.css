@@ -1,4 +1,4 @@
-/* components/hero.css — ARCADE NEON THEME */
+/* components/hero.css — OPTIMIZED DIAGONAL MATRIX */
 
 @font-face {
   font-family: 'MarioKartDS';
@@ -22,9 +22,6 @@
   --neon-pink:   #ff2d78;
   --bg-deep:     #07050f;
   --bg-mid:      #0e0a1e;
-  --glow-purple: 0 0 8px #b84fff, 0 0 20px #b84fff55;
-  --glow-blue:   0 0 8px #00d4ff, 0 0 20px #00d4ff55;
-  --glow-yellow: 0 0 8px #ffe600, 0 0 20px #ffe60055;
 }
 
 /* 1. Core Canvas Foundation */
@@ -36,7 +33,6 @@
   justify-content: center;
   background-color: var(--bg-deep);
   background-image:
-    /* subtle scanline effect */
     repeating-linear-gradient(
       0deg,
       transparent,
@@ -44,7 +40,6 @@
       rgba(255,255,255,0.012) 3px,
       rgba(255,255,255,0.012) 4px
     ),
-    /* radial glow from center */
     radial-gradient(ellipse 80% 60% at 50% 50%, #1a0a3a 0%, var(--bg-deep) 70%);
   position: relative;
   overflow: hidden;
@@ -66,17 +61,20 @@
 /* 2. Seamless Matrix Layer Grid Field Wrapper */
 .stream-matrix-field {
   position: absolute;
-  inset: -8%;
-  width: 116%;
-  height: 116%;
+  /* Oversized boundaries compensate for clipping at tilted edge coordinates */
+  inset: -12%; 
+  width: 124%;
+  height: 124%;
   z-index: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   pointer-events: auto;
   user-select: none;
-  transform: skewY(-6deg) scale(1.05);
   opacity: 0.45;
+
+  /* Restores the perfect diagonal stream vectors from your original style */
+  transform: skewY(-6deg) scale(1.02); 
 }
 
 /* 3. Hardware Accelerated Inline Row Elements */
@@ -88,52 +86,75 @@
   will-change: transform;
 }
 
-/* Individual Icon Rotation — neon tinted */
+/* Individual Icon Base Configuration (Unskewed & Unrotated) */
 .icon-container {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(45deg);
   flex-shrink: 0;
   cursor: pointer;
   pointer-events: auto;
   position: relative;
-  color: rgba(0, 212, 255, 0.55);
-  filter: drop-shadow(0 0 3px rgba(0,212,255,0.35));
-  transition: filter 0.15s ease, transform 0.15s ease, color 0.15s ease;
   padding: 1.25rem;
+  
+  /* Solid theme color palette from your zero-lag version */
+  color: rgba(0, 212, 255, 0.55);
+  fill: transparent;
+  
+  will-change: transform, color, fill;
 }
 
-/* SVG inherits color from container */
 .icon-container svg {
   color: inherit;
+  fill: inherit;
   display: block;
 }
 
-/* Hover: massive neon burst — unmissable */
-.icon-container:hover,
+/* Hover Tracking: Fast scale feedback animation */
 .icon-container.icon-hovered {
-  transform: rotate(45deg) scale(2.5);
-  color: #ffe600;
-  filter:
-    drop-shadow(0 0 8px #ffe600)
-    drop-shadow(0 0 20px #ffe600)
-    drop-shadow(0 0 40px rgba(255,230,0,0.85))
-    brightness(2.5);
+  animation: flatScalePulse 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   z-index: 50;
 }
 
-/* 4. GPU-Accelerated scroll */
+@keyframes flatScalePulse {
+  0% {
+    transform: scale(1);
+    color: rgba(0, 212, 255, 0.55);
+    fill: transparent;
+  }
+  /* Snaps to high-contrast neon yellow layout quickly without shadows */
+  7.5% {
+    transform: scale(1.6);
+    color: var(--neon-yellow);
+    fill: transparent;
+  }
+  25% {
+    transform: scale(1.6);
+    color: var(--neon-yellow);
+    fill: transparent;
+  }
+  100% {
+    transform: scale(1);
+    color: rgba(0, 212, 255, 0.55);
+    fill: transparent;
+  }
+}
+
+/* 4. GPU-ACCELERATED HORIZONTAL TRAVEL WITHIN SKEWED CANVAS */
 .move-left {
   animation: scrollConveyorLeft 55s linear infinite;
 }
 
 @keyframes scrollConveyorLeft {
-  0%   { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0); /* Safely offsets the identical map clone */
+  }
 }
 
-/* 5. Foreground Content */
+/* 5. Foreground Content Panels */
 .hero-content {
   position: relative;
   z-index: 10;
@@ -144,8 +165,6 @@
   user-select: none;
 }
 
-/* No ::before pseudo — removed to prevent ghost shapes */
-
 .hero-content h1 {
   font-family: 'MarioKartDS', 'Segoe UI', sans-serif;
   font-size: 3.5rem;
@@ -153,10 +172,6 @@
   color: #ffffff;
   margin-bottom: 1rem;
   letter-spacing: 0.04em;
-  text-shadow:
-    0 0 10px rgba(255,255,255,0.6),
-    0 0 30px rgba(184, 79, 255, 0.5),
-    0 0 60px rgba(184, 79, 255, 0.2);
   pointer-events: auto;
 }
 
@@ -168,10 +183,6 @@
 
 .hero-content .name {
   color: var(--neon-yellow);
-  text-shadow:
-    0 0 10px var(--neon-yellow),
-    0 0 30px rgba(255, 230, 0, 0.6),
-    0 0 60px rgba(255, 230, 0, 0.3);
 }
 
 .hero-content .subtitle {
@@ -181,7 +192,6 @@
   color: var(--neon-blue);
   margin-bottom: 2rem;
   pointer-events: auto;
-  text-shadow: var(--glow-blue);
   letter-spacing: 0.06em;
 }
 
@@ -193,10 +203,9 @@
 
 .hero-content .subtitle * {
   color: var(--neon-blue) !important;
-  text-shadow: var(--glow-blue);
 }
 
-/* 6. Action Button */
+/* 6. Action Button Alignment Interface Profile */
 .view-work-btn {
   display: inline-flex;
   align-items: center;
@@ -208,17 +217,15 @@
   font-family: 'RainyHearts', monospace;
   font-size: 1rem;
   font-weight: normal;
-  border-radius: 0;                /* sharp pixel corners */
+  border-radius: 0;
   clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
   text-decoration: none;
   letter-spacing: 0.1em;
-  box-shadow: var(--glow-purple), inset 0 0 12px rgba(184,79,255,0.08);
   transition: all 0.3s ease;
   pointer-events: auto;
   position: relative;
 }
 
-/* insert token-slot icon via pseudo */
 .view-work-btn::before {
   content: '▶';
   font-size: 0.7em;
@@ -229,7 +236,6 @@
   background-color: rgba(184, 79, 255, 0.15);
   color: var(--neon-yellow) !important;
   border-color: var(--neon-yellow);
-  box-shadow: var(--glow-yellow), inset 0 0 16px rgba(255,230,0,0.08);
   transform: translateY(-2px);
 }
 

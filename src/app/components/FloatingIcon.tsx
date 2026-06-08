@@ -1,41 +1,40 @@
-// components/FloatingIcon.tsx
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface FloatingIconProps {
   Icon: LucideIcon;
 }
 
-export default function FloatingIcon({ Icon }: FloatingIconProps) {
+const FloatingIcon = React.memo(({ Icon }: FloatingIconProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setIsHovered(true);
-    timeoutRef.current = setTimeout(() => setIsHovered(false), 2000);
+    if (isHovered) {
+      setIsHovered(false);
+      requestAnimationFrame(() => {
+        setIsHovered(true);
+      });
+    } else {
+      setIsHovered(true);
+    }
   };
 
-  const handleMouseLeave = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    // Keep glow for a moment then fade out
-    timeoutRef.current = setTimeout(() => setIsHovered(false), 400);
+  const handleAnimationEnd = () => {
+    setIsHovered(false);
   };
 
   return (
     <div
       onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      // CSS in hero.css takes full control of color/filter — no inline overrides
-      className={`icon-container${isHovered ? ' icon-hovered' : ''}`}
+      onAnimationEnd={handleAnimationEnd}
+      className={`icon-container ${isHovered ? 'icon-hovered' : ''}`}
     >
-      <Icon
-        size={16}
-        strokeWidth={2.5}
-        // No inline color — let .icon-container and .icon-container:hover CSS rules win
-      />
+      <Icon size={16} strokeWidth={2.5} />
     </div>
   );
-}
+});
+
+FloatingIcon.displayName = 'FloatingIcon';
+export default FloatingIcon;
