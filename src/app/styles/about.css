@@ -18,13 +18,14 @@
   font-style: normal;
 }
 
+/* Update your variables block at the top */
 :root {
   --neon-purple: #b84fff;
   --neon-blue:   #00d4ff;
   --neon-yellow: #ffe600;
-  --bg-deep:     #07050f;
-  --bg-mid:      #0e0a1e;
-  --bg-card:     #110d22;
+  --bg-deep:     #110d24; /* Lighter from #07050f */
+  --bg-mid:      #1a1532; /* Lighter from #0e0a1e */
+  --bg-card:     #1d1838; /* Lighter from #110d22 */
   --glow-purple: 0 0 8px #b84fff, 0 0 24px #b84fff44;
   --glow-blue:   0 0 8px #00d4ff, 0 0 24px #00d4ff44;
   --glow-yellow: 0 0 8px #ffe600, 0 0 24px #ffe60044;
@@ -35,11 +36,7 @@
     0 0 40px rgba(184,79,255,0.06);
 }
 
-.about-section,
-.about-section * {
-  box-sizing: border-box;
-}
-
+/* Update ONLY the radial-gradient endpoint inside your .about-section declaration */
 .about-section {
   background-color: var(--bg-deep);
   background-image:
@@ -50,7 +47,7 @@
     ),
     linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px),
-    radial-gradient(ellipse 90% 70% at 50% 0%, #1a0a3a 0%, var(--bg-deep) 60%);
+    radial-gradient(ellipse 90% 70% at 50% 0%, #25124f 0%, var(--bg-deep) 60%); /* Boosted ambient center light to #25124f */
   background-size: auto, 48px 48px, 48px 48px, auto;
   color: #e0d8ff;
   padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem) clamp(2rem, 5vw, 4rem);
@@ -60,6 +57,11 @@
   align-items: flex-start;
   font-family: 'RainyHearts', monospace;
   overflow-x: hidden;
+}
+
+.about-section,
+.about-section * {
+  box-sizing: border-box;
 }
 
 .about-wrapper {
@@ -339,7 +341,7 @@
   /* Token is taller than wide to accommodate icon + name badge */
   width:  clamp(88px, 7.5vw, 90px);
   /* auto height — let content breathe */
-  min-height: clamp(88px, 10vw, 90px);
+  height: clamp(88px, 10vw, 100px);
 
   display: flex;
   flex-direction: column;

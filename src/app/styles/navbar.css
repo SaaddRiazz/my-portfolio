@@ -16,21 +16,23 @@
   font-style: normal;
 }
 
+/* Update your variables block at the top */
 :root {
   --neon-purple: #b84fff;
   --neon-blue:   #00d4ff;
   --neon-yellow: #ffe600;
-  --bg-deep:     #07050f;
-  --bg-mid:      #0e0a1e;
+  --bg-deep:     #110d24; /* Lighter from #07050f */
+  --bg-mid:      #1a1532; /* Lighter from #0e0a1e */
   --glow-purple: 0 0 8px #b84fff, 0 0 20px #b84fff55;
   --glow-blue:   0 0 8px #00d4ff, 0 0 20px #00d4ff55;
   --glow-yellow: 0 0 8px #ffe600, 0 0 20px #ffe60055;
 }
 
-body{
+body {
   background-color: var(--bg-deep);
 }
-/* ── Base nav — STICKY ──────────────────────────────────────────────────── */
+
+/* Update the backdrop alpha on the navbar container */
 .navbar {
   position: sticky;
   top: 0;
@@ -42,7 +44,7 @@ body{
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  background: rgba(7, 5, 15, 0.88);
+  background: rgba(17, 13, 36, 0.88); /* Shifted backdrop target from rgb(7,5,15) values */
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(184, 79, 255, 0.22);
@@ -50,12 +52,35 @@ body{
     0 1px 0 rgba(0,212,255,0.06),
     0 4px 24px rgba(0,0,0,0.55);
   box-sizing: border-box;
-  /* Scanline overlay */
   background-image: repeating-linear-gradient(
     0deg,
     transparent, transparent 3px,
     rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px
   );
+}
+
+/* Update mobile menu background inside media query block */
+@media (max-width: 767px) {
+  .navbar-links {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: rgba(17, 13, 36, 0.97); /* Shifted backdrop target here as well */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(184, 79, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    padding: 0.5rem 0 0.75rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+  }
 }
 
 /* ── Logo ───────────────────────────────────────────────────────────────── */
@@ -241,78 +266,6 @@ body{
   transform: translateY(-7px) rotate(-45deg);
   background: var(--neon-yellow);
   box-shadow: 0 0 8px var(--neon-yellow);
-}
-
-/* ── Mobile ─────────────────────────────────────────────────────────────── */
-@media (max-width: 767px) {
-  .navbar-toggle {
-    display: flex;
-  }
-
-  /* Mobile menu drops down directly below the navbar using normal flow */
-  .navbar-links {
-    /* Take it out of the flex row and make it a block below */
-    position: absolute;
-    top: 60px; /* height of navbar */
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    background: rgba(7, 5, 15, 0.97);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(184,79,255,0.25);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-    padding: 0.5rem 0 0.75rem;
-    /* Hidden */
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transition: max-height 0.35s ease, opacity 0.25s ease;
-  }
-
-  .navbar-links.open {
-    max-height: 400px;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .navbar-links li {
-    border-bottom: 1px solid rgba(184,79,255,0.08);
-  }
-
-  .navbar-links li:last-child {
-    border-bottom: none;
-    padding: 0.6rem 1.5rem 0;
-  }
-
-  .navbar-links li a {
-    display: block;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    letter-spacing: 0.12em;
-  }
-
-  .navbar-links li a::after {
-    display: none;
-  }
-
-  .navbar-links li a:hover {
-    background: rgba(184,79,255,0.07);
-  }
-
-  /* CTA full-width in mobile menu */
-  .navbar-cta {
-    display: block !important;
-    text-align: center;
-    width: 100%;
-    clip-path: none !important;
-    border-radius: 4px !important;
-    padding: 0.65rem 1rem !important;
-    justify-content: center;
-  }
 }
 
 /* ── Scrolled state ─────────────────────────────────────────────────────── */
