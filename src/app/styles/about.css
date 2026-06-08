@@ -1,7 +1,7 @@
 /* ==========================================================================
-   ABOUT SECTION — ARCADE NEON THEME  |  Responsive 3-area layout
-   Desktop: [bio text + skills grid] | [gumball machine]
-   Mobile:  bio text → gumball machine → skills grid
+   ABOUT SECTION — ARCADE NEON THEME
+   Desktop: [bio 70% top-left + skills 70% bottom-left] | [machine 30% right]
+   Mobile:  bio → machine → skills  (single column)
    ========================================================================== */
 
 @font-face {
@@ -28,6 +28,11 @@
   --glow-purple: 0 0 8px #b84fff, 0 0 24px #b84fff44;
   --glow-blue:   0 0 8px #00d4ff, 0 0 24px #00d4ff44;
   --glow-yellow: 0 0 8px #ffe600, 0 0 24px #ffe60044;
+  --card-border:  1px solid rgba(184,79,255,0.25);
+  --card-shadow:
+    0 0 0 1px rgba(0,212,255,0.06) inset,
+    0 8px 32px rgba(0,0,0,0.5),
+    0 0 40px rgba(184,79,255,0.06);
 }
 
 .about-section,
@@ -48,7 +53,7 @@
     radial-gradient(ellipse 90% 70% at 50% 0%, #1a0a3a 0%, var(--bg-deep) 60%);
   background-size: auto, 48px 48px, 48px 48px, auto;
   color: #e0d8ff;
-  padding: 5rem 1.25rem 4rem;
+  padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem) clamp(2rem, 5vw, 4rem);
   width: 100%;
   display: flex;
   justify-content: center;
@@ -62,17 +67,17 @@
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-/* Header */
+/* ── Header ─────────────────────────────────────────────────────── */
 .about-header {
   text-align: center;
 }
 
 .about-header h2 {
   font-family: 'MarioKartDS', sans-serif;
-  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-size: clamp(2rem, 6vw, 4rem);
   font-weight: normal;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -87,7 +92,7 @@
 .about-header::after {
   content: '';
   display: block;
-  width: 80px;
+  width: clamp(50px, 10vw, 80px);
   height: 3px;
   background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
   margin: 0.7rem auto 0;
@@ -97,14 +102,14 @@
 
 /* ==========================================================================
    MAIN CONTENT GRID
-   Desktop: left col = bio (top) + skills (bottom) | right col = machine
-   Mobile:  bio → machine → skills  (single column)
+   Mobile:         bio → machine → skills  (single column)
+   Desktop ≥868px: 70fr left (bio + skills) | 30fr right (machine)
    ========================================================================== */
 
 .about-content {
   display: grid;
   width: 100%;
-  gap: 1.75rem;
+  gap: clamp(1rem, 3vw, 1.75rem);
   grid-template-columns: 1fr;
   grid-template-areas:
     "bio"
@@ -114,10 +119,10 @@
 
 @media (min-width: 868px) {
   .about-content {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 70fr 30fr;
     grid-template-rows: auto 1fr;
-    column-gap: 3rem;
-    row-gap: 1.75rem;
+    column-gap: clamp(1.25rem, 2.5vw, 2rem);
+    row-gap: clamp(1rem, 2vw, 1.75rem);
     align-items: start;
     grid-template-areas:
       "bio     machine"
@@ -125,21 +130,20 @@
   }
 }
 
-/* Bio card */
+/* ── Bio card ────────────────────────────────────────────────────── */
 .about-intro {
   grid-area: bio;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
   background: var(--bg-card);
-  border: 1px solid rgba(184,79,255,0.25);
+  border: var(--card-border);
   border-radius: 4px;
-  padding: 2rem 1.75rem;
-  box-shadow:
-    0 0 0 1px rgba(0,212,255,0.06) inset,
-    0 8px 32px rgba(0,0,0,0.5),
-    0 0 40px rgba(184,79,255,0.06);
+  padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 2.5vw, 1.75rem);
+  box-shadow: var(--card-shadow);
   position: relative;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .about-intro::before,
@@ -164,7 +168,7 @@
 
 .about-intro-heading {
   font-family: 'MarioKartDS', sans-serif;
-  font-size: clamp(1rem, 2.2vw, 1.45rem);
+  font-size: clamp(0.9rem, 2.2vw, 1.45rem);
   font-weight: normal;
   color: #ffffff;
   margin: 0;
@@ -180,7 +184,7 @@
 
 .about-intro p {
   font-family: 'RainyHearts', monospace;
-  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  font-size: clamp(0.78rem, 1.3vw, 1rem);
   line-height: 1.9;
   color: #c5bde0;
   margin: 0;
@@ -194,7 +198,7 @@
 }
 
 .about-intro .callout {
-  font-size: clamp(0.88rem, 1.3vw, 1rem);
+  font-size: clamp(0.78rem, 1.3vw, 1rem);
   color: #d4ccf0;
   border-left: 3px solid var(--neon-purple);
   padding-left: 1rem;
@@ -204,7 +208,7 @@
 
 .about-intro .skills-label {
   font-family: 'RainyHearts', monospace;
-  font-size: 0.75rem;
+  font-size: clamp(0.65rem, 1vw, 0.75rem);
   font-weight: normal;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -218,7 +222,7 @@
   color: var(--neon-yellow);
 }
 
-/* Machine column — spans both grid rows on desktop */
+/* ── Machine column ──────────────────────────────────────────────── */
 .skills-grid-container {
   grid-area: machine;
   display: flex;
@@ -226,39 +230,36 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
+  min-width: 0;
 }
 
 .gumball-skills-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: clamp(0.6rem, 2vw, 1rem);
   width: 100%;
+  min-width: 0;
 }
 
-/* Canvas — fluid height, never clips */
 .canvas-container {
   width: 100%;
-  height: clamp(260px, 48vw, 440px);
+  height: clamp(220px, 50vw, 400px);
   border: 1px solid rgba(0,212,255,0.15);
   border-radius: 4px;
-  box-shadow:
-    0 0 30px rgba(0,212,255,0.08),
-    inset 0 0 20px rgba(0,0,0,0.4);
+  box-shadow: 0 0 30px rgba(0,212,255,0.08), inset 0 0 20px rgba(0,0,0,0.4);
   overflow: hidden;
 }
 
 @media (min-width: 868px) {
-  /* On desktop, let the canvas be taller since the right col has more room */
   .canvas-container {
-    height: clamp(320px, 36vw, 480px);
+    height: clamp(280px, 28vw, 480px);
   }
 }
 
-/* Status text */
 .status-message {
   font-family: 'RainyHearts', monospace;
-  font-size: 0.88rem;
+  font-size: clamp(0.72rem, 1.1vw, 0.85rem);
   color: #9e94cc;
   text-align: center;
   margin: 0;
@@ -266,116 +267,205 @@
   letter-spacing: 0.05em;
 }
 
-.status-message strong {
-  color: #ffffff;
-  font-weight: normal;
-}
-
-.status-message .highlight {
-  color: var(--neon-yellow);
-  text-shadow: var(--glow-yellow);
-}
-
+.status-message strong { color: #ffffff; font-weight: normal; }
+.status-message .highlight { color: var(--neon-yellow); text-shadow: var(--glow-yellow); }
 .success-highlight {
   color: #00ff88 !important;
   text-shadow: 0 0 8px #00ff88, 0 0 20px rgba(0,255,136,0.4) !important;
 }
 
-/* Skills grid — sits in its own grid-area */
+/* ==========================================================================
+   SKILLS ROW  —  card box + single horizontal row, NO scrollbars visible
+   ========================================================================== */
+
 .skills-grid {
   grid-area: skills;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.6rem;
-  width: 100%;
+  background: var(--bg-card);
+  border: var(--card-border);
+  border-radius: 4px;
+  padding: clamp(0.9rem, 2vw, 1.25rem) clamp(1rem, 2.5vw, 1.5rem);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(0.6rem, 1.4vw, 1rem);
+
+  /* scroll without any visible bar */
+  overflow-x: auto;
+  overflow-y: hidden;          /* kill vertical scroll completely */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;       /* Firefox */
 }
 
-@media (max-width: 400px) {
-  .skills-grid {
-    gap: 0.4rem;
-  }
+.skills-grid::-webkit-scrollbar {
+  display: none;               /* Chrome / Safari / Edge */
 }
+
+/* yellow corner accents */
+.skills-grid::before,
+.skills-grid::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--neon-yellow);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 1;
+}
+.skills-grid::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; box-shadow: -2px -2px 6px rgba(255,230,0,0.3); }
+.skills-grid::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; box-shadow: 2px 2px 6px rgba(255,230,0,0.3); }
+
+/* ==========================================================================
+   SKILL CARD  —  arcade token design
+   Each card is a pill/token with a radial-gradient bg, thick glowing ring,
+   large icon, and a bold arcade name badge below.
+   ========================================================================== */
 
 .skill-card {
+  flex: 0 0 auto;
+  /* Token is taller than wide to accommodate icon + name badge */
+  width:  clamp(68px, 7.5vw, 90px);
+  /* auto height — let content breathe */
+  height: auto;
+  min-height: clamp(88px, 10vw, 112px);
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  padding: 0.5rem 0.2rem 0.6rem;
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  width: 100%;
-  border: 2px solid rgba(184,79,255,0.3);
-  background: var(--bg-card);
+  justify-content: flex-end;   /* name badge anchored at bottom */
+  gap: 0;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;             /* clip inner layers */
   position: relative;
+  cursor: default;
+
+  /* locked default: dark token */
+  background: linear-gradient(160deg, #1a1030 0%, #0d0820 100%);
+  border: 2px solid rgba(184,79,255,0.2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+
   transition:
-    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    background 0.4s ease,
-    border-color 0.4s ease,
-    box-shadow 0.4s ease;
+    transform  0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.35s ease;
 }
 
+/* hover lift on locked */
 .skill-card:not(.unlocked):hover {
-  border-color: rgba(184,79,255,0.6);
-  box-shadow: 0 0 12px rgba(184,79,255,0.2);
+  transform: translateY(-3px) scale(1.04);
+  border-color: rgba(184,79,255,0.5);
+  box-shadow: 0 6px 20px rgba(184,79,255,0.25);
 }
 
+/* ── Unlocked state — applied via JS inline style for bg/border color ── */
 .skill-card.unlocked {
-  border-color: transparent;
-}
-
-.skill-card.unlocked .skill-name {
-  color: #ffffff;
+  border-width: 3px;
 }
 
 .skill-card.newly-unlocked {
-  transform: scale(1.15);
-  box-shadow:
-    0 0 20px var(--neon-purple),
-    0 0 40px rgba(184,79,255,0.4);
+  animation: tokenPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tokenPop {
+  0%   { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.22) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1)    rotate(0deg); opacity: 1; }
+}
+
+/* hover lift on unlocked */
+.skill-card.unlocked:hover {
+  transform: translateY(-4px) scale(1.06);
+}
+
+/* ── Icon area — top portion of the token ────────────────────────── */
+.skill-icon-area {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 1.4vw, 16px) clamp(8px, 1vw, 12px) clamp(6px, 0.8vw, 10px);
+  position: relative;
+}
+
+/* Subtle inner radial shine on the icon area */
+.skill-card.unlocked .skill-icon-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(255,255,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(22px, 4vw, 36px);
-  height: clamp(22px, 4vw, 36px);
+  /* White disc behind icon for maximum contrast */
+  width:  clamp(34px, 4vw, 46px);
+  height: clamp(34px, 4vw, 46px);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .icon-wrapper img {
-  width: 100% !important;
-  height: auto !important;
+  width:  72% !important;
+  height: 72% !important;
   object-fit: contain;
-  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
 }
 
+/* Locked icon — just the lock emoji, dim */
 .lock-placeholder {
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  opacity: 0.4;
-  filter: drop-shadow(0 0 4px var(--neon-purple));
+  font-size: clamp(1rem, 1.6vw, 1.3rem);
+  opacity: 0.35;
+  filter: drop-shadow(0 0 6px var(--neon-purple));
+  line-height: 1;
+}
+
+/* ── Name badge — bottom strip of the token ──────────────────────── */
+.skill-name-badge {
+  width: 100%;
+  padding: clamp(4px, 0.6vw, 6px) 4px clamp(5px, 0.7vw, 7px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* dark translucent bar */
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
 }
 
 .skill-name {
-  font-family: 'RainyHearts', monospace;
-  font-size: clamp(0.45rem, 1vw, 0.6rem);
+  font-family: 'MarioKartDS', sans-serif;   /* arcade font */
+  font-size: clamp(0.42rem, 0.7vw, 0.58rem);
   font-weight: normal;
-  color: #7a6fa8;
+  letter-spacing: 0.05em;
   text-align: center;
-  letter-spacing: 0.04em;
-  line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90%;
+  max-width: 92%;
+  line-height: 1;
+  /* default locked: dim */
+  color: #5a5278;
+  text-shadow: none;
 }
 
-.locked-text {
-  color: #4a4468;
-  letter-spacing: 0.08em;
+/* unlocked name — bright white with shadow for readability */
+.skill-card.unlocked .skill-name {
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
 }
 
+/* ── Unlock-all button ────────────────────────────────────────────── */
 .unlock-all-btn {
   font-family: 'RainyHearts', monospace !important;
   letter-spacing: 0.08em;
@@ -386,6 +476,10 @@
   color: #07050f !important;
   text-shadow: none !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  padding: clamp(7px, 1.5vw, 10px) clamp(14px, 3vw, 20px) !important;
+  font-size: clamp(11px, 1.8vw, 14px) !important;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .unlock-all-btn:hover {
@@ -393,25 +487,28 @@
   box-shadow: 0 0 20px rgba(255,230,0,0.5), 0 0 40px rgba(184,79,255,0.3) !important;
 }
 
-/* Toast */
+/* ── Toast ────────────────────────────────────────────────────────── */
 .gumball-toast {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: clamp(1rem, 3vw, 1.5rem);
   left: 50%;
   transform: translateX(-50%);
   background: var(--bg-mid);
   border: 1px solid var(--neon-purple);
   border-radius: 0;
   clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
-  padding: 0.6rem 1.6rem;
+  padding: clamp(0.4rem, 1.5vw, 0.6rem) clamp(1rem, 3vw, 1.6rem);
   font-family: 'RainyHearts', monospace;
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 1.5vw, 0.85rem);
   font-weight: normal;
   color: #ffffff;
   letter-spacing: 0.06em;
   z-index: 9999;
   box-shadow: var(--glow-purple);
   white-space: nowrap;
+  max-width: calc(100vw - 2rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
   animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
