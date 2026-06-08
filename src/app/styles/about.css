@@ -472,44 +472,47 @@
   text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.6);
 }
 
-/* ── Unlock-all button ────────────────────────────────────────────── */
+/* ── Unlock-all button (Synced with Hero Button) ─────────────────── */
 .unlock-all-btn {
+  background-color: transparent !important;
+  border: 2px solid var(--neon-purple) !important;
+  color: var(--neon-purple) !important;
   font-family: 'RainyHearts', monospace !important;
-  font-size: clamp(12px, 1.8vw, 14px) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  padding: clamp(8px, 1.5vw, 11px) clamp(16px, 3vw, 24px) !important;
-  
-  /* Retain pixel-cut arcade aesthetic angles */
-  border: none !important;
+  font-size: 1rem !important;
+  font-weight: normal !important;
   border-radius: 0 !important;
   clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  
-  /* Sync color profile with main neon theme */
-  background: linear-gradient(135deg, var(--neon-purple) 0%, var(--neon-blue) 100%) !important;
-  color: var(--bg-deep) !important;
-  text-shadow: none !important;
-  box-shadow: 0 4px 14px rgba(0, 212, 255, 0.3) !important;
-  
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  padding: clamp(7px, 1.5vw, 10px) clamp(14px, 3vw, 20px) !important;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  position: relative;
+  box-shadow: none !important;
+  
+  /* Smooth indefinite transition for all property updates */
+  transition: all 0.3s ease !important;
 }
 
-/* Hover state using the secondary neon accent line */
+/* Hover state matching the exact hero transition properties */
 .unlock-all-btn:not(:disabled):hover {
-  background: linear-gradient(135deg, var(--neon-yellow) 0%, var(--neon-purple) 100%) !important;
-  box-shadow: 0 0 16px rgba(255, 230, 0, 0.45), 0 0 28px rgba(184, 79, 255, 0.25) !important;
+  background-color: rgba(184, 79, 255, 0.15) !important;
+  color: var(--neon-yellow) !important;
+  border-color: var(--neon-yellow) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: none !important;
+  animation: none !important;
 }
 
 /* Gracefully handle disabled condition styles */
 .unlock-all-btn:disabled {
-  background: rgba(30, 24, 54, 0.4) !important;
-  border: 1px solid rgba(184, 79, 255, 0.15) !important;
+  background-color: transparent !important;
+  border: 2px solid rgba(184, 79, 255, 0.15) !important;
   color: #5a5278 !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
   pointer-events: none;
+  transform: none !important;
   clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
 }
 

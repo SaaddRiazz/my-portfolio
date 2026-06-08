@@ -22,9 +22,8 @@ export const skills = [
 
 /* ── Per-skill arcade token palette ─────────────────────────────────
    Each entry: [gradientFrom, gradientTo, ringColor, glowColor]
-   Deliberately loud, high-contrast, every token distinct.
 ────────────────────────────────────────────────────────────────── */
-const SKILL_PALETTES: [string, string, string, string][] = [
+export const SKILL_PALETTES: [string, string, string, string][] = [
   /* Unity      */ ['#1a1a2e', '#16213e', '#00e5ff', '#00e5ff'],
   /* React      */ ['#0f3460', '#1a1a4e', '#61dafb', '#61dafb'],
   /* Python     */ ['#1b4332', '#0d3b2a', '#ffd43b', '#ffd43b'],
@@ -35,13 +34,6 @@ const SKILL_PALETTES: [string, string, string, string][] = [
   /* Java       */ ['#7a1c00', '#4d1200', '#f89820', '#ffcc44'],
   /* Blender    */ ['#1a3a5c', '#0d2240', '#ea7600', '#ffaa44'],
   /* Git        */ ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
-];
-
-/* gumball animation still uses random colors for flying balls */
-const GUMBALL_COLORS = [
-  '#FF3CAC', '#FF7C2A', '#FFD600', '#00E676',
-  '#00B0FF', '#D500F9', '#FF1744', '#69F0AE',
-  '#40C4FF', '#FFAB40',
 ];
 
 useGLTF.preload('/models/gumball-machine-transformed.glb');
@@ -100,8 +92,11 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
     const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i) && !reservedRef.current.has(i));
     if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
 
-    const idx   = locked[Math.floor(Math.random() * locked.length)];
-    const color = GUMBALL_COLORS[idx % GUMBALL_COLORS.length];
+    const idx = locked[Math.floor(Math.random() * locked.length)];
+    
+    // Pick falling gumball color dynamically using the matching token glow color
+    const color = SKILL_PALETTES[idx][3];
+    
     reservedRef.current.add(idx);
     setAllocatedCount(p => p + 1);
     setBalls(p => [...p, { id: Date.now() + Math.random(), color, skillIndex: idx }]);
@@ -195,26 +190,8 @@ export function GumballMachine() {
           onClick={handleUnlockAll}
           disabled={remaining === 0}
           className="unlock-all-btn"
-          style={remaining === 0 ? {
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            color: '#5a5278',
-            cursor: 'not-allowed',
-            boxShadow: 'none',
-            transform: 'none'
-          } : {}}
-          onMouseEnter={e => { 
-            if (remaining > 0) {
-              e.currentTarget.style.transform = 'scale(1.04)'; 
-            }
-          }}
-          onMouseLeave={e => { 
-            if (remaining > 0) {
-              e.currentTarget.style.transform = 'scale(1)';
-            }
-          }}
         >
-          {remaining > 0 ? '💥 Smash Machine (Unlock All)' : '🔒 All Skills Discovered'}
+          {remaining > 0 ? '▶ Smash Machine (Unlock All)' : '🔒 All Skills Discovered'}
         </button>
       </div>
     </div>

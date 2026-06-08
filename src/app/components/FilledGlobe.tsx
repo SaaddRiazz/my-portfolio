@@ -1,12 +1,7 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-
-const GUMBALL_COLORS = [
-  '#FF3CAC', '#FF7C2A', '#FFD600', '#00E676',
-  '#00B0FF', '#D500F9', '#FF1744', '#69F0AE',
-  '#40C4FF', '#FFAB40',
-];
+import { skills, SKILL_PALETTES } from './GumballMachine';
 
 interface FilledGlobeProps {
   unlockedCount: number;
@@ -25,7 +20,6 @@ function FadingBall({
 }) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const opacityRef = useRef(1);
-  // Track whether this ball has started fading
   const fadingRef = useRef(false);
 
   useFrame((_, delta) => {
@@ -93,7 +87,10 @@ export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeP
       }
 
       if (!overlapping) {
-        const color = GUMBALL_COLORS[Math.floor(Math.random() * GUMBALL_COLORS.length)];
+        // Tie ball color array directly with matching skill token color maps
+        const skillIndex = balls.length % skills.length;
+        const color = SKILL_PALETTES[skillIndex][3];
+
         const heightOffset = y - centerY;
         let threshold: 'always' | 'removeAt30' | 'removeAt70' = 'always';
         if (heightOffset > -0.10) threshold = 'removeAt30';
