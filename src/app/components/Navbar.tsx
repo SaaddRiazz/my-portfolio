@@ -1,69 +1,88 @@
+// components/Navbar.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import '../styles/navbar.css';
+
+const navLinks = [
+  { label: 'Home',     href: '#home'     },
+  { label: 'About',    href: '#about'    },
+  { label: 'Projects', href: '#projects' },
+  { label: 'Contact',  href: '#contact'  },
+];
 
 export default function Navbar() {
-  const [activeSection, setActiveSection] = useState('home');
+  const [menuOpen, setMenuOpen]     = useState(false);
+  const [scrolled, setScrolled]     = useState(false);
+  const [activeLink, setActiveLink] = useState('#home');
 
   useEffect(() => {
-    const sections = ['home', 'about', 'projects', 'contact'];
-    
-    // Monitors elements transitioning across the viewport space
-    const options = {
-      root: null,
-      rootMargin: '-20% 0px -60% 0px',
-      threshold: 0,
-    };
-
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, options);
-
-    sections.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => {
-      sections.forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) observer.unobserve(el);
-      });
-    };
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    e.preventDefault();
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  useEffect(() => {
+    const sections = navLinks
+      .map(l => document.querySelector(l.href))
+      .filter(Boolean) as Element[];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) setActiveLink('#' + entry.target.id);
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+    sections.forEach(s => observer.observe(s));
+    return () => observer.disconnect();
+  }, []);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <nav className="navbar backdrop-blur-md">
-      <ul className="navbar-links">
-        {['Home', 'About', 'Projects', 'Contact'].map((item) => {
-          const id = item.toLowerCase();
-          return (
-            <li key={id}>
-              <a
-                href={`#${id}`}
-                className={activeSection === id ? 'active' : ''}
-                onClick={(e) => handleClick(e, id)}
-              >
-                {item}
-              </a>
-            </li>
-          );
-        })}
+    <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
+
+      {/* Logo — brackets instead of angle brackets to avoid SSR/client mismatch */}
+      <a href="#home" className="navbar-logo" onClick={closeMenu}>
+        <span className="logo-bracket">&lt;/</span>
+        <span className="logo-accent">Saad</span>
+        <span className="logo-bracket">&gt;</span>
+      </a>
+
+      {/* Hamburger toggle */}
+      <button
+        className={`navbar-toggle${menuOpen ? ' open' : ''}`}
+        onClick={() => setMenuOpen(prev => !prev)}
+        aria-label="Toggle navigation"
+        aria-expanded={menuOpen}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      {/* Nav links */}
+      <ul className={`navbar-links${menuOpen ? ' open' : ''}`}>
+        {navLinks.map(link => (
+          <li key={link.href}>
+            <a
+              href={link.href}
+              className={activeLink === link.href ? 'active' : ''}
+              onClick={closeMenu}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="mailto:you@example.com" className="navbar-cta" onClick={closeMenu}>
+            Hire Me
+          </a>
+        </li>
       </ul>
+
     </nav>
   );
 }

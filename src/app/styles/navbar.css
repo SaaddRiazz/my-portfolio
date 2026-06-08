@@ -1,0 +1,349 @@
+/* ==========================================================================
+   NAVBAR — ARCADE NEON THEME  |  Sticky (sits below hero, sticks on scroll)
+   ========================================================================== */
+
+@font-face {
+  font-family: 'MarioKartDS';
+  src: url('../fonts/Mario-Kart-DS.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'RainyHearts';
+  src: url('../fonts/rainyhearts.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Update your variables block at the top */
+:root {
+  --neon-purple: #b84fff;
+  --neon-blue:   #00d4ff;
+  --neon-yellow: #ffe600;
+  --bg-deep:     #110d24; /* Lighter from #07050f */
+  --bg-mid:      #1a1532; /* Lighter from #0e0a1e */
+  --glow-purple: 0 0 8px #b84fff, 0 0 20px #b84fff55;
+  --glow-blue:   0 0 8px #00d4ff, 0 0 20px #00d4ff55;
+  --glow-yellow: 0 0 8px #ffe600, 0 0 20px #ffe60055;
+}
+
+body {
+  background-color: var(--bg-deep);
+}
+
+/* Update the backdrop alpha on the navbar container */
+.navbar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background: rgba(17, 13, 36, 0.88); /* Shifted backdrop target from rgb(7,5,15) values */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(184, 79, 255, 0.22);
+  box-shadow:
+    0 1px 0 rgba(0,212,255,0.06),
+    0 4px 24px rgba(0,0,0,0.55);
+  box-sizing: border-box;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 4px
+  );
+}
+
+/* Update mobile menu background inside media query block */
+@media (max-width: 767px) {
+  .navbar-links {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: rgba(17, 13, 36, 0.97); /* Shifted backdrop target here as well */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(184, 79, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    padding: 0.5rem 0 0.75rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+  }
+}
+
+/* ── Logo ───────────────────────────────────────────────────────────────── */
+.navbar-logo {
+  font-family: 'MarioKartDS', sans-serif;
+  font-size: 1.35rem;
+  font-weight: normal;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05em;
+  text-shadow:
+    0 0 10px rgba(255,255,255,0.5),
+    0 0 24px var(--neon-purple),
+    0 0 48px rgba(184,79,255,0.25);
+  transition: text-shadow 0.25s ease;
+  white-space: nowrap;
+}
+
+.navbar-logo:hover {
+  text-shadow:
+    0 0 12px rgba(255,255,255,0.9),
+    0 0 28px var(--neon-yellow),
+    0 0 56px rgba(255,230,0,0.35);
+}
+
+.logo-bracket {
+  color: var(--neon-purple);
+  text-shadow: var(--glow-purple);
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.navbar-logo:hover .logo-bracket {
+  color: var(--neon-yellow);
+  text-shadow: var(--glow-yellow);
+}
+
+.logo-accent {
+  color: var(--neon-yellow);
+  text-shadow: var(--glow-yellow);
+}
+
+/* ── Desktop nav links ──────────────────────────────────────────────────── */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-links li a {
+  font-family: 'RainyHearts', monospace;
+  font-size: 0.9rem;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  color: #a89ec8;
+  text-decoration: none;
+  padding: 0.4rem 0.85rem;
+  position: relative;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Neon underline grow */
+.navbar-links li a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--neon-blue);
+  box-shadow: var(--glow-blue);
+  transform: translateX(-50%);
+  transition: width 0.25s ease;
+  border-radius: 2px;
+}
+
+.navbar-links li a:hover {
+  color: var(--neon-blue);
+  text-shadow: var(--glow-blue);
+}
+
+.navbar-links li a:hover::after {
+  width: 70%;
+}
+
+.navbar-links li a.active {
+  color: var(--neon-yellow);
+  text-shadow: var(--glow-yellow);
+}
+
+.navbar-links li a.active::after {
+  width: 70%;
+  background: var(--neon-yellow);
+  box-shadow: var(--glow-yellow);
+}
+
+/* ── CTA button ─────────────────────────────────────────────────────────── */
+.navbar-cta {
+  font-family: 'RainyHearts', monospace !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0.12em !important;
+  color: var(--neon-purple) !important;
+  border: 1.5px solid var(--neon-purple) !important;
+  padding: 0.35rem 1.1rem !important;
+  border-radius: 0 !important;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  box-shadow: var(--glow-purple);
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.navbar-cta::before {
+  content: '▶';
+  font-size: 0.6em;
+  opacity: 0.8;
+}
+
+/* No underline on CTA */
+.navbar-cta::after {
+  display: none !important;
+}
+
+.navbar-cta:hover {
+  color: #07050f !important;
+  background: var(--neon-purple) !important;
+  box-shadow:
+    0 0 12px var(--neon-purple),
+    0 0 28px rgba(184,79,255,0.5) !important;
+  text-shadow: none !important;
+}
+
+/* ── Hamburger button ───────────────────────────────────────────────────── */
+.navbar-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid rgba(184,79,255,0.35);
+  border-radius: 3px;
+  padding: 6px;
+  box-shadow: var(--glow-purple);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navbar-toggle:hover {
+  border-color: var(--neon-yellow);
+  box-shadow: var(--glow-yellow);
+}
+
+.navbar-toggle span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--neon-purple);
+  box-shadow: 0 0 6px var(--neon-purple);
+  transition: transform 0.3s ease, opacity 0.3s ease, background 0.2s ease;
+  transform-origin: center;
+}
+
+.navbar-toggle.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+  background: var(--neon-yellow);
+  box-shadow: 0 0 8px var(--neon-yellow);
+}
+.navbar-toggle.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.navbar-toggle.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+  background: var(--neon-yellow);
+  box-shadow: 0 0 8px var(--neon-yellow);
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .navbar-toggle {
+    display: flex;
+  }
+
+  /* Mobile menu drops down directly below the navbar using normal flow */
+  .navbar-links {
+    /* Take it out of the flex row and make it a block below */
+    position: absolute;
+    top: 60px; /* height of navbar */
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: rgba(7, 5, 15, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(184,79,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    padding: 0.5rem 0 0.75rem;
+    /* Hidden */
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s ease, opacity 0.25s ease;
+  }
+
+  .navbar-links.open {
+    max-height: 400px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .navbar-links li {
+    border-bottom: 1px solid rgba(184,79,255,0.08);
+  }
+
+  .navbar-links li:last-child {
+    border-bottom: none;
+    padding: 0.6rem 1.5rem 0;
+  }
+
+  .navbar-links li a {
+    display: block;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+  }
+
+  .navbar-links li a::after {
+    display: none;
+  }
+
+  .navbar-links li a:hover {
+    background: rgba(184,79,255,0.07);
+  }
+
+  /* CTA full-width in mobile menu */
+  .navbar-cta {
+    display: block !important;
+    text-align: center;
+    width: 100%;
+    clip-path: none !important;
+    border-radius: 4px !important;
+    padding: 0.65rem 1rem !important;
+    justify-content: center;
+  }
+}
+
+/* ── Scrolled state ─────────────────────────────────────────────────────── */
+.navbar.scrolled {
+  border-bottom-color: rgba(0,212,255,0.28);
+  box-shadow:
+    0 1px 0 rgba(0,212,255,0.1),
+    0 4px 32px rgba(0,0,0,0.7);
+}
