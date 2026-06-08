@@ -1,24 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import Typewriter from './Typewriter';
-import FloatingIcon from './FloatingIcon';
 import '../styles/hero.css'; 
-import { 
-  Gamepad2, Laptop, Smartphone, Keyboard, Tv, Database, 
-  Code2, Headphones, Cpu, Rocket, Lightbulb, Command, 
-  Binary, FolderGit2, Blocks, Radio, HardDrive, Joystick,
-  Terminal, Shield, Layers, Layout, Monitor, Globe, 
-  Server, Share2, Disc, KeyRound, Wrench
-} from 'lucide-react';
-
-const iconPool = [
-  Gamepad2, Laptop, Smartphone, Keyboard, Tv, Database, 
-  Code2, Headphones, Cpu, Rocket, Lightbulb, Command,
-  Binary, FolderGit2, Blocks, Radio, HardDrive, Joystick,
-  Terminal, Shield, Layers, Layout, Monitor, Globe,
-  Server, Share2, Disc, KeyRound, Wrench
-];
 
 export default function HeroSection() {
   const [mounted, setMounted] = useState(false);
@@ -33,41 +17,12 @@ export default function HeroSection() {
     'Android App Developer.',
   ];
 
-  const totalRows = 24; 
-  const uniqueIconsPerRow = 28; 
-
-  const randomizedMatrix = useMemo(() => {
-    const matrix: number[][] = [];
-    for (let r = 0; r < totalRows; r++) {
-      const rowSequence: number[] = [];
-      for (let i = 0; i < uniqueIconsPerRow; i++) {
-        rowSequence.push(Math.floor(Math.random() * iconPool.length));
-      }
-      matrix.push(rowSequence);
-    }
-    return matrix;
-  }, []);
-
   if (!mounted) {
     return <section id="home" className="hero" />;
   }
 
   return (
     <section id="home" className="hero">
-      
-      <div className="stream-matrix-field">
-        {randomizedMatrix.map((rowSequence, rowIndex) => {
-          return (
-            <div key={rowIndex} className="grid-row move-left">
-              {[...rowSequence, ...rowSequence].map((iconIdx, itemIdx) => {
-                const TargetIcon = iconPool[iconIdx];
-                return <FloatingIcon key={`${rowIndex}-${itemIdx}-${iconIdx}`} Icon={TargetIcon} />;
-              })}
-            </div>
-          );
-        })}
-      </div>
-
       <div className="hero-content">
         <h1 className="animate-slide-left">
           Hello, I&apos;m <span className="name">Saad</span>.
@@ -81,7 +36,6 @@ export default function HeroSection() {
           View my work <span className="arrow">↓</span>
         </a>
       </div>
-      
     </section>
   );
 }
