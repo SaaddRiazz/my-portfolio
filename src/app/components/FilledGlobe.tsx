@@ -71,7 +71,7 @@ export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeP
     const BALL_DIAMETER = 0.06;
 
     const centerX = 0.04;
-    const centerY = 1.1;
+    const centerY = 0.9;
     const centerZ = 0;
 
     for (let attempts = 0; attempts < 600; attempts++) {
@@ -107,27 +107,27 @@ export default function FilledGlobe({ unlockedCount, totalSkills }: FilledGlobeP
   }, []);
 
   const unlockPercentage = (unlockedCount / totalSkills) * 100;
-
   return (
     <group>
       {staticBalls.map((ball) => {
-        // Determine if this ball should be fading (crossing a threshold)
-        // or fully hidden (well past the threshold).
-
-        // Already fully gone — don't render at all (saves draw calls after fade)
-        if (unlockPercentage >= 100) return null;
-
         const isTopLayer    = ball.threshold === 'removeAt30';
         const isMiddleLayer = ball.threshold === 'removeAt70';
+        const isBaseLayer   = ball.threshold === 'always';
 
-        // Completely past threshold + enough time for fade → skip
-        if (unlockPercentage >= 70 + 15 && (isTopLayer || isMiddleLayer)) return null;
-        if (unlockPercentage >= 30 + 15 && isTopLayer && !isMiddleLayer) return null;
+        // 1. Handle Unrendering / Skipping after fade animation finishes (+15% padding)
+        if (isTopLayer && unlockPercentage >= 30 + 15) return null;
+        if (isMiddleLayer && unlockPercentage >= 70 + 15) return null;
+        if (isBaseLayer && unlockPercentage >= 100 + 15) return null;
 
-        // Should this ball be fading right now?
-        const shouldFade =
-          (unlockPercentage >= 70 && (isTopLayer || isMiddleLayer)) ||
-          (unlockPercentage >= 30 && isTopLayer && !isMiddleLayer);
+        // 2. Handle Activation Thresholds for Fading
+        let shouldFade = false;
+        if (isTopLayer && unlockPercentage >= 30) {
+          shouldFade = true;
+        } else if (isMiddleLayer && unlockPercentage >= 70) {
+          shouldFade = true;
+        } else if (isBaseLayer && unlockPercentage >= 100) {
+          shouldFade = true;
+        }
 
         return (
           <FadingBall

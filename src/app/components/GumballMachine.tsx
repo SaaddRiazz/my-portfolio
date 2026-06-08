@@ -139,7 +139,7 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
     const t = Math.min(progress.current, 1);
     const angle = t * Math.PI * 2 * 3.45;
     if (ref.current) {
-      ref.current.position.set(Math.cos(angle) * 0.15, 0.49 + (-1.08 - 0.49) * t, Math.sin(angle) * 0.15);
+      ref.current.position.set(Math.cos(angle) * 0.15, 0.29 + (-1.08 - 0.49) * t, Math.sin(angle) * 0.15);
       ref.current.rotation.x += delta * 16;
       ref.current.rotation.z += delta * 10;
     }
@@ -159,7 +159,7 @@ function MachineModel() {
   const { scene } = useGLTF(modelPath);
   return (
     <>
-      <primitive object={scene} scale={2} position={[0, -1.45, 0]}
+      <primitive object={scene} scale={2} position={[0, -1.65, 0]}
         onClick={(e: any) => { e.stopPropagation(); handleCrankClick(); }} />
       {balls.map(b => (
         <GumballBall key={b.id} color={b.color} onComplete={() => handleBallComplete(b.id, b.skillIndex)} />
@@ -190,23 +190,32 @@ export function GumballMachine() {
             ? <>Click the <strong>crank</strong> to unlock — <span className="highlight">{remaining}</span> remaining</>
             : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
         </p>
-        {remaining > 0 && (
-          <button
-            onClick={handleUnlockAll}
-            className="unlock-all-btn"
-            style={{
-              padding: '10px 20px', fontSize: '14px', fontWeight: '700',
-              color: '#ffffff', background: 'linear-gradient(135deg, #FF1744 0%, #D500F9 100%)',
-              border: 'none', borderRadius: '30px', cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(213,0,249,0.4)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(213,0,249,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.boxShadow = '0 4px 15px rgba(213,0,249,0.4)'; }}
-          >
-            💥 Smash Machine (Unlock All)
-          </button>
-        )}
+        
+        <button
+          onClick={handleUnlockAll}
+          disabled={remaining === 0}
+          className="unlock-all-btn"
+          style={remaining === 0 ? {
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            color: '#5a5278',
+            cursor: 'not-allowed',
+            boxShadow: 'none',
+            transform: 'none'
+          } : {}}
+          onMouseEnter={e => { 
+            if (remaining > 0) {
+              e.currentTarget.style.transform = 'scale(1.04)'; 
+            }
+          }}
+          onMouseLeave={e => { 
+            if (remaining > 0) {
+              e.currentTarget.style.transform = 'scale(1)';
+            }
+          }}
+        >
+          {remaining > 0 ? '💥 Smash Machine (Unlock All)' : '🔒 All Skills Discovered'}
+        </button>
       </div>
     </div>
   );

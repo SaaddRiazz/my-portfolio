@@ -64,7 +64,7 @@
 
 .about-wrapper {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   display: flex;
   flex-direction: column;
   gap: clamp(1.5rem, 3vw, 2.5rem);
@@ -92,10 +92,10 @@
 .about-header::after {
   content: '';
   display: block;
-  width: clamp(50px, 10vw, 80px);
+  width: clamp(100px, 10vw, 80px);
   height: 3px;
   background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
-  margin: 0.7rem auto 0;
+  margin: 0 auto 0;
   border-radius: 2px;
   box-shadow: var(--glow-blue);
 }
@@ -206,7 +206,7 @@
   box-shadow: -3px 0 12px rgba(184,79,255,0.25);
 }
 
-.about-intro .skills-label {
+.about-intro .skills-label, .skills-label {
   font-family: 'RainyHearts', monospace;
   font-size: clamp(0.65rem, 1vw, 0.75rem);
   font-weight: normal;
@@ -217,7 +217,7 @@
   margin-top: 0.5rem;
 }
 
-.about-intro .skills-label::before {
+.skills-label::before, .skills-label::before {
   content: '▶ ';
   color: var(--neon-yellow);
 }
@@ -244,7 +244,8 @@
 
 .canvas-container {
   width: 100%;
-  height: clamp(220px, 50vw, 400px);
+  height: 100%;
+  height: clamp(420px, 55vw, 410px);
   border: 1px solid rgba(0,212,255,0.15);
   border-radius: 4px;
   box-shadow: 0 0 30px rgba(0,212,255,0.08), inset 0 0 20px rgba(0,0,0,0.4);
@@ -253,7 +254,7 @@
 
 @media (min-width: 868px) {
   .canvas-container {
-    height: clamp(280px, 28vw, 480px);
+    height: clamp(380px, 30vw, 480px);
   }
 }
 
@@ -278,7 +279,7 @@
    SKILLS ROW  —  card box + single horizontal row, NO scrollbars visible
    ========================================================================== */
 
-.skills-grid {
+.skills-wrapper-container {
   grid-area: skills;
   background: var(--bg-card);
   border: var(--card-border);
@@ -287,12 +288,34 @@
   box-shadow: var(--card-shadow);
   position: relative;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
+/* yellow corner accents pinned to the outer container so they don't scroll */
+.skills-wrapper-container::before,
+.skills-wrapper-container::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--neon-yellow);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 1;
+}
+.skills-wrapper-container::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; box-shadow: -2px -2px 6px rgba(255,230,0,0.3); }
+.skills-wrapper-container::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; box-shadow: 2px 2px 6px rgba(255,230,0,0.3); }
+
+.skills-grid {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
   gap: clamp(0.6rem, 1.4vw, 1rem);
+  width: 100%;
+  padding: 0.5rem;
 
   /* scroll without any visible bar */
   overflow-x: auto;
@@ -305,21 +328,6 @@
   display: none;               /* Chrome / Safari / Edge */
 }
 
-/* yellow corner accents */
-.skills-grid::before,
-.skills-grid::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-color: var(--neon-yellow);
-  border-style: solid;
-  pointer-events: none;
-  z-index: 1;
-}
-.skills-grid::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; box-shadow: -2px -2px 6px rgba(255,230,0,0.3); }
-.skills-grid::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; box-shadow: 2px 2px 6px rgba(255,230,0,0.3); }
-
 /* ==========================================================================
    SKILL CARD  —  arcade token design
    Each card is a pill/token with a radial-gradient bg, thick glowing ring,
@@ -329,10 +337,9 @@
 .skill-card {
   flex: 0 0 auto;
   /* Token is taller than wide to accommodate icon + name badge */
-  width:  clamp(68px, 7.5vw, 90px);
+  width:  clamp(88px, 7.5vw, 90px);
   /* auto height — let content breathe */
-  height: auto;
-  min-height: clamp(88px, 10vw, 112px);
+  min-height: clamp(88px, 10vw, 90px);
 
   display: flex;
   flex-direction: column;
@@ -444,8 +451,8 @@
 }
 
 .skill-name {
-  font-family: 'MarioKartDS', sans-serif;   /* arcade font */
-  font-size: clamp(0.42rem, 0.7vw, 0.58rem);
+  font-family: 'RainyHearts', sans-serif;   /* arcade font */
+  font-size: clamp(0.95rem, 0.9vw, 0.98rem);
   font-weight: normal;
   letter-spacing: 0.05em;
   text-align: center;
@@ -468,23 +475,42 @@
 /* ── Unlock-all button ────────────────────────────────────────────── */
 .unlock-all-btn {
   font-family: 'RainyHearts', monospace !important;
+  font-size: clamp(12px, 1.8vw, 14px) !important;
+  font-weight: 700 !important;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+  padding: clamp(8px, 1.5vw, 11px) clamp(16px, 3vw, 24px) !important;
+  
+  /* Retain pixel-cut arcade aesthetic angles */
+  border: none !important;
   border-radius: 0 !important;
   clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  background: linear-gradient(135deg, #b84fff 0%, #00d4ff 100%) !important;
-  border: none !important;
-  color: #07050f !important;
+  
+  /* Sync color profile with main neon theme */
+  background: linear-gradient(135deg, var(--neon-purple) 0%, var(--neon-blue) 100%) !important;
+  color: var(--bg-deep) !important;
   text-shadow: none !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-  padding: clamp(7px, 1.5vw, 10px) clamp(14px, 3vw, 20px) !important;
-  font-size: clamp(11px, 1.8vw, 14px) !important;
-  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 212, 255, 0.3) !important;
+  
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
 }
 
-.unlock-all-btn:hover {
-  background: linear-gradient(135deg, #ffe600 0%, #b84fff 100%) !important;
-  box-shadow: 0 0 20px rgba(255,230,0,0.5), 0 0 40px rgba(184,79,255,0.3) !important;
+/* Hover state using the secondary neon accent line */
+.unlock-all-btn:not(:disabled):hover {
+  background: linear-gradient(135deg, var(--neon-yellow) 0%, var(--neon-purple) 100%) !important;
+  box-shadow: 0 0 16px rgba(255, 230, 0, 0.45), 0 0 28px rgba(184, 79, 255, 0.25) !important;
+}
+
+/* Gracefully handle disabled condition styles */
+.unlock-all-btn:disabled {
+  background: rgba(30, 24, 54, 0.4) !important;
+  border: 1px solid rgba(184, 79, 255, 0.15) !important;
+  color: #5a5278 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
 }
 
 /* ── Toast ────────────────────────────────────────────────────────── */

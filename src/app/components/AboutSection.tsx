@@ -15,17 +15,6 @@ export default function AboutSection() {
             <h2>About</h2>
           </div>
 
-          {/*
-            Three direct children of .about-content so CSS grid-template-areas
-            assigns them correctly:
-
-              Desktop (≥868px):
-                "bio     machine"   ← row 1
-                "skills  machine"   ← row 2  (machine spans both rows)
-
-              Mobile:
-                bio → machine → skills  (single column)
-          */}
           <div className="about-content">
 
             {/* ── grid-area: bio ── */}
@@ -48,8 +37,6 @@ export default function AboutSection() {
                 discover, build, and ship something truly unique. If you got the vision,{' '}
                 <strong>I got the code</strong>. Let&apos;s make it real.
               </p>
-
-              <p className="skills-label">Skills — click the crank to reveal</p>
             </div>
 
             {/* ── grid-area: machine ── */}
@@ -57,8 +44,11 @@ export default function AboutSection() {
               <GumballMachine />
             </div>
 
-            {/* ── grid-area: skills ── */}
-            <SkillsGrid />
+            {/* ── NEW WRAPPER - grid-area: skills ── */}
+            <div className="skills-wrapper-container">
+              <p className="skills-label">Skills</p>
+              <SkillsGrid />
+            </div>
 
           </div>
         </div>
