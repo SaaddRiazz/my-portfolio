@@ -1,12 +1,11 @@
 'use client';
 
-import { useRef, useState, createContext, useContext } from 'react';
+import { useRef, useState, createContext, useContext, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import Image from 'next/image';
 import FilledGlobe from './FilledGlobe';
 
-/* ── Skills data ─────────────────────────────────────────────────── */
 export const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
   { name: 'React',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg' },
@@ -20,26 +19,22 @@ export const skills = [
   { name: 'Git',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg' },
 ];
 
-/* ── Per-skill arcade token palette ─────────────────────────────────
-   Each entry: [gradientFrom, gradientTo, ringColor, glowColor]
-────────────────────────────────────────────────────────────────── */
 export const SKILL_PALETTES: [string, string, string, string][] = [
-  /* Unity      */ ['#1a1a2e', '#16213e', '#00e5ff', '#00e5ff'],
-  /* React      */ ['#0f3460', '#1a1a4e', '#61dafb', '#61dafb'],
-  /* Python     */ ['#1b4332', '#0d3b2a', '#ffd43b', '#ffd43b'],
-  /* TypeScript */ ['#003087', '#001f5b', '#3178c6', '#60aaff'],
-  /* Node.js    */ ['#1b4d1b', '#0d2e0d', '#68a063', '#8fff8a'],
-  /* Next.js    */ ['#1a1a1a', '#0d0d0d', '#ffffff', '#ccccff'],
-  /* C#         */ ['#3b0066', '#220044', '#9b4dca', '#cc66ff'],
-  /* Java       */ ['#7a1c00', '#4d1200', '#f89820', '#ffcc44'],
-  /* Blender    */ ['#1a3a5c', '#0d2240', '#ea7600', '#ffaa44'],
-  /* Git        */ ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
+  ['#1a1a2e', '#16213e', '#00e5ff', '#00e5ff'],
+  ['#0f3460', '#1a1a4e', '#61dafb', '#61dafb'],
+  ['#1b4332', '#0d3b2a', '#ffd43b', '#ffd43b'],
+  ['#003087', '#001f5b', '#3178c6', '#60aaff'],
+  ['#1b4d1b', '#0d2e0d', '#68a063', '#8fff8a'],
+  ['#1a1a1a', '#0d0d0d', '#ffffff', '#ccccff'],
+  ['#3b0066', '#220044', '#9b4dca', '#cc66ff'],
+  ['#7a1c00', '#4d1200', '#f89820', '#ffcc44'],
+  ['#1a3a5c', '#0d2240', '#ea7600', '#ffaa44'],
+  ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
 ];
 
 useGLTF.preload('/models/gumball-machine-transformed.glb');
 useGLTF.preload('/models/gumball-machine-broken-transformed.glb');
 
-/* ── Context ─────────────────────────────────────────────────────── */
 interface GumballCtx {
   unlocked: Set<number>;
   justUnlocked: number | null;
@@ -55,13 +50,12 @@ interface GumballCtx {
 
 const GumballContext = createContext<GumballCtx | null>(null);
 
-function useGumball() {
+export function useGumball() {
   const ctx = useContext(GumballContext);
   if (!ctx) throw new Error('Must be inside GumballProvider');
   return ctx;
 }
 
-/* ── Provider ────────────────────────────────────────────────────── */
 export function GumballProvider({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked]             = useState<Set<number>>(new Set());
   const [justUnlocked, setJustUnlocked]     = useState<number | null>(null);
@@ -93,8 +87,6 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
     if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
 
     const idx = locked[Math.floor(Math.random() * locked.length)];
-    
-    // Pick falling gumball color dynamically using the matching token glow color
     const color = SKILL_PALETTES[idx][3];
     
     reservedRef.current.add(idx);
@@ -125,7 +117,6 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ── Falling gumball ─────────────────────────────────────────────── */
 function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
   const ref      = useRef<any>(null);
   const progress = useRef(0);
@@ -148,14 +139,16 @@ function GumballBall({ color, onComplete }: { color: string; onComplete: () => v
   );
 }
 
-/* ── 3-D model ───────────────────────────────────────────────────── */
 function MachineModel() {
   const { handleCrankClick, allocatedCount, balls, handleBallComplete, modelPath } = useGumball();
   const { scene } = useGLTF(modelPath);
   return (
     <>
       <primitive object={scene} scale={2} position={[0, -1.65, 0]}
-        onClick={(e: any) => { e.stopPropagation(); handleCrankClick(); }} />
+        onClick={(e: any) => { e.stopPropagation(); handleCrankClick(); }}
+        onPointerOver={(e: any) => { e.stopPropagation(); if (!modelPath.includes('broken')) document.body.style.cursor = 'pointer'; }}
+        onPointerOut={(e: any) => { e.stopPropagation(); document.body.style.cursor = 'default'; }}
+      />
       {balls.map(b => (
         <GumballBall key={b.id} color={b.color} onComplete={() => handleBallComplete(b.id, b.skillIndex)} />
       ))}
@@ -164,7 +157,6 @@ function MachineModel() {
   );
 }
 
-/* ── GumballMachine (canvas + controls) ─────────────────────────── */
 export function GumballMachine() {
   const { remaining, handleUnlockAll } = useGumball();
   return (
@@ -198,12 +190,46 @@ export function GumballMachine() {
   );
 }
 
-/* ── SkillsGrid ─────────────────────────────────────────────────── */
 export function SkillsGrid() {
   const { unlocked, justUnlocked } = useGumball();
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const gridEl = gridRef.current;
+    if (!gridEl) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaX !== 0) return;
+      e.preventDefault();
+      gridEl.scrollLeft += e.deltaY;
+    };
+
+    gridEl.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      gridEl.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (justUnlocked === null || !gridRef.current) return;
+
+    const targetCard = gridRef.current.querySelector(
+      `[data-skill-id="${skills[justUnlocked].name}"]`
+    );
+
+    if (targetCard) {
+      setTimeout(() => {
+        targetCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }, 50);
+    }
+  }, [justUnlocked]);
 
   return (
-    <div className="skills-grid">
+    <div className="skills-grid" ref={gridRef}>
       {skills.map((s, i) => {
         const isUnlocked = unlocked.has(i);
         const isNew      = justUnlocked === i;
@@ -212,16 +238,16 @@ export function SkillsGrid() {
         const unlockedStyle = isUnlocked ? {
           background: `linear-gradient(160deg, ${gradFrom} 0%, ${gradTo} 100%)`,
           border: `3px solid ${ring}`,
-          boxShadow: `0 0 12px ${glow}88, 0 0 28px ${glow}33, inset 0 1px 0 rgba(255,255,255,0.1)`,
+          boxShadow: `0 0 12px ${glow}88, 0 0 12px ${glow}33, inset 0 1px 0 rgba(255,255,255,0.1)`,
         } : {};
 
         return (
           <div
             key={s.name}
+            data-skill-id={s.name}
             className={`skill-card${isNew ? ' newly-unlocked' : ''}${isUnlocked ? ' unlocked' : ''}`}
             style={unlockedStyle}
           >
-            {/* Icon area */}
             <div className="skill-icon-area">
               {isUnlocked ? (
                 <div className="icon-wrapper">
@@ -232,13 +258,12 @@ export function SkillsGrid() {
               )}
             </div>
 
-            {/* Name badge */}
             <div className="skill-name-badge">
               <span
                 className="skill-name"
                 style={isUnlocked ? { color: '#ffffff', textShadow: `0 0 6px ${glow}cc, 0 1px 3px rgba(0,0,0,0.9)` } : {}}
               >
-                {isUnlocked ? s.name : '???'}
+                {isUnlocked ? s.name : '???' }
               </span>
             </div>
           </div>
@@ -248,13 +273,11 @@ export function SkillsGrid() {
   );
 }
 
-/* ── Toast ───────────────────────────────────────────────────────── */
 export function GumballToast() {
   const { toast } = useGumball();
   return toast ? <div className="gumball-toast">{toast}</div> : null;
 }
 
-/* ── Default standalone export ───────────────────────────────────── */
 export default function GumballSkills() {
   return (
     <GumballProvider>
