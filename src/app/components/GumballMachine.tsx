@@ -5,6 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import Image from 'next/image';
 import FilledGlobe from './FilledGlobe';
+import * as THREE from 'three';
 
 export const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
@@ -62,7 +63,7 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast]                   = useState('');
   const [balls, setBalls]                   = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
   const [allocatedCount, setAllocatedCount] = useState(0);
-  const [modelPath, setModelPath]           = useState('/models/gumball-machine-transformed.glb');
+  const [modelPath, setModelPath]           = useState('/models/claw-machine-transformed.glb');
 
   const reservedRef = useRef<Set<number>>(new Set());
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -144,7 +145,7 @@ function MachineModel() {
   const { scene } = useGLTF(modelPath);
   return (
     <>
-      <primitive object={scene} scale={2} position={[0, -1.65, 0]}
+      <primitive object={scene} scale={1.35} position={[0, -12.5, 0]}
         onClick={(e: any) => { e.stopPropagation(); handleCrankClick(); }}
         onPointerOver={(e: any) => { e.stopPropagation(); if (!modelPath.includes('broken')) document.body.style.cursor = 'pointer'; }}
         onPointerOut={(e: any) => { e.stopPropagation(); document.body.style.cursor = 'default'; }}
@@ -162,8 +163,14 @@ export function GumballMachine() {
   return (
     <div className="gumball-skills-container">
       <div className="canvas-container">
-        <Canvas orthographic camera={{ position: [0, 0, 4], zoom: 120, near: 0.1, far: 1000 }}
-          onClick={e => e.stopPropagation()}>
+        <Canvas 
+          camera={{ position: [0, 4, 20], fov: 100 }}
+          onClick={e => e.stopPropagation()}
+          gl={{
+            toneMapping: THREE.NoToneMapping,
+            outputColorSpace: THREE.SRGBColorSpace
+          }}
+        >
           <ambientLight intensity={2.5} />
           <directionalLight position={[0, 10, 8]} intensity={2.0} />
           <directionalLight position={[-5, 5, 5]} intensity={2.0} />
