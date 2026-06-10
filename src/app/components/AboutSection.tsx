@@ -2,7 +2,7 @@
 
 import React from 'react';
 import '../styles/about.css';
-import { GumballProvider, GumballMachine, SkillsGrid, GumballToast } from './GumballMachine';
+import { GumballProvider, GumballMachine, SkillsGrid, GumballToast } from './ClawMachineMain';
 
 export default function AboutSection() {
   return (

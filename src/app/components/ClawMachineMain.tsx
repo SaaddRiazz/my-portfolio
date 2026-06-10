@@ -6,6 +6,7 @@ import { useGLTF } from '@react-three/drei';
 import Image from 'next/image';
 import FilledGlobe from './FilledGlobe';
 import * as THREE from 'three';
+import ClawMachineViewer from './ClawMachine';
 
 export const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
@@ -33,7 +34,7 @@ export const SKILL_PALETTES: [string, string, string, string][] = [
   ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
 ];
 
-useGLTF.preload('/models/gumball-machine-transformed.glb');
+useGLTF.preload('/models/claw-body.glb');
 useGLTF.preload('/models/gumball-machine-broken-transformed.glb');
 
 interface GumballCtx {
@@ -63,7 +64,7 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast]                   = useState('');
   const [balls, setBalls]                   = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
   const [allocatedCount, setAllocatedCount] = useState(0);
-  const [modelPath, setModelPath]           = useState('/models/claw-machine-transformed.glb');
+  const [modelPath, setModelPath]           = useState('/models/claw-body.glb');
 
   const reservedRef = useRef<Set<number>>(new Set());
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -163,20 +164,7 @@ export function GumballMachine() {
   return (
     <div className="gumball-skills-container">
       <div className="canvas-container">
-        <Canvas 
-          camera={{ position: [0, 4, 20], fov: 100 }}
-          onClick={e => e.stopPropagation()}
-          gl={{
-            toneMapping: THREE.NoToneMapping,
-            outputColorSpace: THREE.SRGBColorSpace
-          }}
-        >
-          <ambientLight intensity={2.5} />
-          <directionalLight position={[0, 10, 8]} intensity={2.0} />
-          <directionalLight position={[-5, 5, 5]} intensity={2.0} />
-          <pointLight position={[0, 3, 4]} intensity={1.5} color="#ffffff" />
-          <MachineModel />
-        </Canvas>
+        <ClawMachineViewer/>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
         <p className="status-message" style={{ margin: 0 }}>
@@ -190,7 +178,7 @@ export function GumballMachine() {
           disabled={remaining === 0}
           className="unlock-all-btn"
         >
-          {remaining > 0 ? '▶ Smash Machine (Unlock All)' : '🔒 All Skills Discovered'}
+          {remaining > 0 ? 'Unlock All' : 'All Skills Discovered'}
         </button>
       </div>
     </div>
