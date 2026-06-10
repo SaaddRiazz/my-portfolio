@@ -2,11 +2,11 @@
 
 import React from 'react';
 import '../styles/about.css';
-import { GumballProvider, GumballMachine, SkillsGrid, GumballToast } from './ClawMachineMain';
+import { ClawMachineProvider, ClawMachine, SkillsGrid, ClawMachineToast } from './ClawMachineMain';
 
 export default function AboutSection() {
   return (
-    <GumballProvider>
+    <ClawMachineProvider>
       <section id="about" className="about-section">
         <div className="about-wrapper">
           <div className="about-header">
@@ -32,7 +32,7 @@ export default function AboutSection() {
               </p>
             </div>
             <div className="skills-grid-container">
-              <GumballMachine />
+              <ClawMachine />
             </div>
             <div className="skills-wrapper-container">
               <p className="skills-label">Skills</p>
@@ -41,7 +41,7 @@ export default function AboutSection() {
           </div>
         </div>
       </section>
-      <GumballToast />
-    </GumballProvider>
+      <ClawMachineToast />
+    </ClawMachineProvider>
   );
 }

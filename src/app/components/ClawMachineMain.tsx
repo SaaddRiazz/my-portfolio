@@ -1,11 +1,7 @@
 'use client';
 
 import { useRef, useState, createContext, useContext, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
 import Image from 'next/image';
-import FilledGlobe from './FilledGlobe';
-import * as THREE from 'three';
 import ClawMachineViewer from './ClawMachine';
 
 export const skills = [
@@ -34,40 +30,33 @@ export const SKILL_PALETTES: [string, string, string, string][] = [
   ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
 ];
 
-useGLTF.preload('/models/claw-body.glb');
-useGLTF.preload('/models/gumball-machine-broken-transformed.glb');
-
-interface GumballCtx {
+interface ClawMachineCtx {
   unlocked: Set<number>;
   justUnlocked: number | null;
   remaining: number;
-  handleCrankClick: () => void;
+  handlePlayClick: () => void;
   handleUnlockAll: () => void;
-  allocatedCount: number;
-  balls: Array<{ id: number; color: string; skillIndex: number }>;
-  handleBallComplete: (id: number, skillIndex: number) => void;
-  modelPath: string;
+  processSkillUnlock: () => void;
+  triggerAnimation: boolean;
+  setTriggerAnimation: (val: boolean) => void;
   toast: string;
 }
 
-const GumballContext = createContext<GumballCtx | null>(null);
+const ClawMachineContext = createContext<ClawMachineCtx | null>(null);
 
-export function useGumball() {
-  const ctx = useContext(GumballContext);
-  if (!ctx) throw new Error('Must be inside GumballProvider');
+export function useClawMachine() {
+  const ctx = useContext(ClawMachineContext);
+  if (!ctx) throw new Error('Must be inside ClawMachineProvider');
   return ctx;
 }
 
-export function GumballProvider({ children }: { children: React.ReactNode }) {
-  const [unlocked, setUnlocked]             = useState<Set<number>>(new Set());
-  const [justUnlocked, setJustUnlocked]     = useState<number | null>(null);
-  const [toast, setToast]                   = useState('');
-  const [balls, setBalls]                   = useState<Array<{ id: number; color: string; skillIndex: number }>>([]);
-  const [allocatedCount, setAllocatedCount] = useState(0);
-  const [modelPath, setModelPath]           = useState('/models/claw-body.glb');
+export function ClawMachineProvider({ children }: { children: React.ReactNode }) {
+  const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
+  const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
+  const [triggerAnimation, setTriggerAnimation] = useState(false);
+  const [toast, setToast]               = useState('');
 
-  const reservedRef = useRef<Set<number>>(new Set());
-  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -75,107 +64,79 @@ export function GumballProvider({ children }: { children: React.ReactNode }) {
     timerRef.current = setTimeout(() => setToast(''), 2400);
   }
 
-  function handleBallComplete(ballId: number, skillIndex: number) {
-    setBalls(prev => prev.filter(b => b.id !== ballId));
-    setUnlocked(prev => new Set([...prev, skillIndex]));
-    setJustUnlocked(skillIndex);
-    showToast(`Unlocked: ${skills[skillIndex].name}!`);
-    setTimeout(() => setJustUnlocked(null), 800);
+  function handlePlayClick() {
+    if (triggerAnimation) return;
+    const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
+    if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
+    setTriggerAnimation(true);
   }
 
-  function handleCrankClick() {
-    if (modelPath.includes('broken')) return;
-    const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i) && !reservedRef.current.has(i));
-    if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
-
+  function processSkillUnlock() {
+    const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
+    if (!locked.length) return;
     const idx = locked[Math.floor(Math.random() * locked.length)];
-    const color = SKILL_PALETTES[idx][3];
-    
-    reservedRef.current.add(idx);
-    setAllocatedCount(p => p + 1);
-    setBalls(p => [...p, { id: Date.now() + Math.random(), color, skillIndex: idx }]);
+    setUnlocked(prev => new Set([...prev, idx]));
+    setJustUnlocked(idx);
+    showToast(`Unlocked: ${skills[idx].name}!`);
+    setTimeout(() => setJustUnlocked(null), 800);
   }
 
   function handleUnlockAll() {
     if (unlocked.size === skills.length) { showToast('All skills already unlocked! 🎉'); return; }
-    setBalls([]);
-    skills.forEach((_, idx) => reservedRef.current.add(idx));
-    setAllocatedCount(skills.length);
     setUnlocked(new Set(skills.map((_, i) => i)));
-    setModelPath('/models/gumball-machine-broken-transformed.glb');
-    showToast('Boom! Machine broken, all skills unlocked! 🛠️💥');
+    showToast('Success! All skills unlocked! 🛠️💥');
   }
 
   return (
-    <GumballContext.Provider value={{
+    <ClawMachineContext.Provider value={{
       unlocked, justUnlocked,
       remaining: skills.length - unlocked.size,
-      handleCrankClick, handleUnlockAll,
-      allocatedCount, balls, handleBallComplete,
-      modelPath, toast,
+      handlePlayClick, handleUnlockAll, processSkillUnlock,
+      triggerAnimation, setTriggerAnimation,
+      toast,
     }}>
       {children}
-    </GumballContext.Provider>
+    </ClawMachineContext.Provider>
   );
 }
 
-function GumballBall({ color, onComplete }: { color: string; onComplete: () => void }) {
-  const ref      = useRef<any>(null);
-  const progress = useRef(0);
-  useFrame((_, delta) => {
-    progress.current += delta;
-    const t = Math.min(progress.current, 1);
-    const angle = t * Math.PI * 2 * 3.45;
-    if (ref.current) {
-      ref.current.position.set(Math.cos(angle) * 0.15, 0.29 + (-1.08 - 0.49) * t, Math.sin(angle) * 0.15);
-      ref.current.rotation.x += delta * 16;
-      ref.current.rotation.z += delta * 10;
-    }
-    if (t >= 1) onComplete();
-  });
-  return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[0.055, 16, 16]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} roughness={0} metalness={1} />
-    </mesh>
-  );
-}
+export function ClawMachine() {
+  const {
+    remaining, handleUnlockAll, handlePlayClick,
+    processSkillUnlock, triggerAnimation, setTriggerAnimation,
+  } = useClawMachine();
 
-function MachineModel() {
-  const { handleCrankClick, allocatedCount, balls, handleBallComplete, modelPath } = useGumball();
-  const { scene } = useGLTF(modelPath);
-  return (
-    <>
-      <primitive object={scene} scale={1.35} position={[0, -12.5, 0]}
-        onClick={(e: any) => { e.stopPropagation(); handleCrankClick(); }}
-        onPointerOver={(e: any) => { e.stopPropagation(); if (!modelPath.includes('broken')) document.body.style.cursor = 'pointer'; }}
-        onPointerOut={(e: any) => { e.stopPropagation(); document.body.style.cursor = 'default'; }}
-      />
-      {balls.map(b => (
-        <GumballBall key={b.id} color={b.color} onComplete={() => handleBallComplete(b.id, b.skillIndex)} />
-      ))}
-      <FilledGlobe unlockedCount={allocatedCount} totalSkills={skills.length} />
-    </>
-  );
-}
-
-export function GumballMachine() {
-  const { remaining, handleUnlockAll } = useGumball();
   return (
     <div className="gumball-skills-container">
+      {/*
+        ── CLICK FIX ──────────────────────────────────────────────────────────
+        Previously this div had onClick={handlePlayClick}, which fired whenever
+        ANYWHERE on the canvas was clicked — because DOM events bubble up from
+        the canvas regardless of Three.js stopPropagation.
+
+        The fix: remove onClick from this wrapper entirely.
+        The only trigger is now onButtonClick passed into ClawMachineViewer,
+        which is wired to the Three.js button mesh's onClick with stopPropagation.
+        ───────────────────────────────────────────────────────────────────────
+      */}
       <div className="canvas-container">
-        <ClawMachineViewer/>
+        <ClawMachineViewer
+          onAnimationComplete={processSkillUnlock}
+          triggerAnimation={triggerAnimation}
+          setTriggerAnimation={setTriggerAnimation}
+          onButtonClick={handlePlayClick}   // ← only the 3D button calls this
+        />
       </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
         <p className="status-message" style={{ margin: 0 }}>
           {remaining > 0
-            ? <>Click the <strong>crank</strong> to unlock — <span className="highlight">{remaining}</span> remaining</>
+            ? <>Click the <strong>button</strong> to claw a skill — <span className="highlight">{remaining}</span> remaining</>
             : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
         </p>
-        
         <button
           onClick={handleUnlockAll}
-          disabled={remaining === 0}
+          disabled={remaining === 0 || triggerAnimation}
           className="unlock-all-btn"
         >
           {remaining > 0 ? 'Unlock All' : 'All Skills Discovered'}
@@ -186,39 +147,27 @@ export function GumballMachine() {
 }
 
 export function SkillsGrid() {
-  const { unlocked, justUnlocked } = useGumball();
+  const { unlocked, justUnlocked } = useClawMachine();
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const gridEl = gridRef.current;
     if (!gridEl) return;
-
     const handleWheel = (e: WheelEvent) => {
       if (e.deltaX !== 0) return;
       e.preventDefault();
       gridEl.scrollLeft += e.deltaY;
     };
-
     gridEl.addEventListener('wheel', handleWheel, { passive: false });
-    return () => {
-      gridEl.removeEventListener('wheel', handleWheel);
-    };
+    return () => { gridEl.removeEventListener('wheel', handleWheel); };
   }, []);
 
   useEffect(() => {
     if (justUnlocked === null || !gridRef.current) return;
-
-    const targetCard = gridRef.current.querySelector(
-      `[data-skill-id="${skills[justUnlocked].name}"]`
-    );
-
+    const targetCard = gridRef.current.querySelector(`[data-skill-id="${skills[justUnlocked].name}"]`);
     if (targetCard) {
       setTimeout(() => {
-        targetCard.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center',
-        });
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }, 50);
     }
   }, [justUnlocked]);
@@ -252,13 +201,12 @@ export function SkillsGrid() {
                 <div className="lock-placeholder">🔒</div>
               )}
             </div>
-
             <div className="skill-name-badge">
               <span
                 className="skill-name"
                 style={isUnlocked ? { color: '#ffffff', textShadow: `0 0 6px ${glow}cc, 0 1px 3px rgba(0,0,0,0.9)` } : {}}
               >
-                {isUnlocked ? s.name : '???' }
+                {isUnlocked ? s.name : '???'}
               </span>
             </div>
           </div>
@@ -268,17 +216,7 @@ export function SkillsGrid() {
   );
 }
 
-export function GumballToast() {
-  const { toast } = useGumball();
+export function ClawMachineToast() {
+  const { toast } = useClawMachine();
   return toast ? <div className="gumball-toast">{toast}</div> : null;
-}
-
-export default function GumballSkills() {
-  return (
-    <GumballProvider>
-      <GumballMachine />
-      <SkillsGrid />
-      <GumballToast />
-    </GumballProvider>
-  );
 }
