@@ -491,3 +491,56 @@
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+
+/* ─── about.css additions ───────────────────────────────────────────────────
+   Add these rules to your existing about.css (or replace the relevant blocks).
+   They handle the new full-width bio + 70/30 skills-row layout.
+─────────────────────────────────────────────────────────────────────────── */
+
+/* Bio — spans the full wrapper width */
+.about-intro {
+  width: 100%;
+  margin-bottom: 2.5rem;
+}
+
+/* Skills row: grid on the left, model on the right */
+.about-skills-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+/* 70% — non-scrollable skills grid */
+.about-skills-panel {
+  flex: 0 0 70%;
+  max-width: 70%;
+}
+
+/* Make the skills grid wrap instead of scroll */
+.about-skills-panel .skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 0.75rem;
+  overflow: visible;   /* override any horizontal scroll from the base rule */
+  flex-wrap: unset;    /* reset if the base rule uses flex */
+}
+
+/* 30% — claw machine */
+.about-model-panel {
+  flex: 0 0 30%;
+  max-width: 30%;
+}
+
+/* Stack vertically on narrow screens */
+@media (max-width: 768px) {
+  .about-skills-row {
+    flex-direction: column;
+  }
+
+  .about-skills-panel,
+  .about-model-panel {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

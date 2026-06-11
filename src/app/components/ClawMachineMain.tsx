@@ -4,6 +4,8 @@ import { useRef, useState, createContext, useContext, useEffect } from 'react';
 import Image from 'next/image';
 import ClawMachineViewer from './ClawMachine';
 
+// ── Skills data ─────────────────────────────────────────────────────────────
+
 export const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
   { name: 'React',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg' },
@@ -30,6 +32,8 @@ export const SKILL_PALETTES: [string, string, string, string][] = [
   ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
 ];
 
+// ── Context ──────────────────────────────────────────────────────────────────
+
 interface ClawMachineCtx {
   unlocked: Set<number>;
   justUnlocked: number | null;
@@ -50,13 +54,17 @@ export function useClawMachine() {
   return ctx;
 }
 
+// ── Provider ─────────────────────────────────────────────────────────────────
+
 export function ClawMachineProvider({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
   const [triggerAnimation, setTriggerAnimation] = useState(false);
   const [toast, setToast]               = useState('');
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guard against double-fire: track whether we already queued an animation this cycle
+  const animationQueued = useRef(false);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -65,11 +73,20 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
   }
 
   function handlePlayClick() {
-    if (triggerAnimation) return;
+    // Prevent double-trigger from event bubbling or rapid taps
+    if (triggerAnimation || animationQueued.current) return;
     const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
     if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
+    animationQueued.current = true;
     setTriggerAnimation(true);
   }
+
+  // Reset the queued guard once the animation state is confirmed active
+  useEffect(() => {
+    if (!triggerAnimation) {
+      animationQueued.current = false;
+    }
+  }, [triggerAnimation]);
 
   function processSkillUnlock() {
     const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
@@ -100,6 +117,8 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
   );
 }
 
+// ── Claw Machine 3D Viewer + Controls ─────────────────────────────────────────
+
 export function ClawMachine() {
   const {
     remaining, handleUnlockAll, handlePlayClick,
@@ -108,23 +127,12 @@ export function ClawMachine() {
 
   return (
     <div className="gumball-skills-container">
-      {/*
-        ── CLICK FIX ──────────────────────────────────────────────────────────
-        Previously this div had onClick={handlePlayClick}, which fired whenever
-        ANYWHERE on the canvas was clicked — because DOM events bubble up from
-        the canvas regardless of Three.js stopPropagation.
-
-        The fix: remove onClick from this wrapper entirely.
-        The only trigger is now onButtonClick passed into ClawMachineViewer,
-        which is wired to the Three.js button mesh's onClick with stopPropagation.
-        ───────────────────────────────────────────────────────────────────────
-      */}
       <div className="canvas-container">
         <ClawMachineViewer
           onAnimationComplete={processSkillUnlock}
           triggerAnimation={triggerAnimation}
           setTriggerAnimation={setTriggerAnimation}
-          onButtonClick={handlePlayClick}   // ← only the 3D button calls this
+          onButtonClick={handlePlayClick}
         />
       </div>
 
@@ -145,6 +153,8 @@ export function ClawMachine() {
     </div>
   );
 }
+
+// ── Skills Grid ───────────────────────────────────────────────────────────────
 
 export function SkillsGrid() {
   const { unlocked, justUnlocked } = useClawMachine();
@@ -215,6 +225,8 @@ export function SkillsGrid() {
     </div>
   );
 }
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
 
 export function ClawMachineToast() {
   const { toast } = useClawMachine();

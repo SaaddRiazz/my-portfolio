@@ -12,7 +12,7 @@ const JOYSTICK_RETURN_SPD = 8;
 const CRANE_MOVE_SPEED    = 3.5;
 
 const DROP_ZONE_X    = -3.5;
-const DROP_ZONE_Z    =  2.0;  
+const DROP_ZONE_Z    =  2.0;
 const LOWER_DEPTH    = -2.5;
 const CLAW_CLOSE_ROT =  0.5;
 const ANIM_SPEED     =  2;
@@ -34,17 +34,15 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const gltfs = useGLTF(filePaths);
   const { gl } = useThree();
 
-  // Clone scenes stably inside useMemo so memory spaces don't collide
   const clones = useMemo(() => {
     const map: Record<string, THREE.Group> = {};
     MODEL_PARTS.forEach((part, i) => {
       map[part] = gltfs[i].scene.clone(true);
     });
     return map;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Pre-calculate pivot data natively for JSX positioning without self-referencing
   const pivotOffsets = useMemo(() => {
     const getPivotOffset = (obj: THREE.Group, anchor: "top" | "bottom") => {
       const box = new THREE.Box3().setFromObject(obj);
@@ -53,11 +51,10 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       const targetY = anchor === "top" ? box.max.y : box.min.y;
       return new THREE.Vector3(center.x, targetY, center.z);
     };
-
     return {
       joystick: getPivotOffset(clones["joystick"], "bottom"),
-      left: getPivotOffset(clones["left"], "top"),
-      right: getPivotOffset(clones["right"], "top"),
+      left:     getPivotOffset(clones["left"],     "top"),
+      right:    getPivotOffset(clones["right"],    "top"),
     };
   }, [clones]);
 
@@ -71,23 +68,29 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const rightRef      = useRef<THREE.Group>(null);
 
   // ── Animation state ───────────────────────────────────────────────────────
-  const animState  = useRef<
-    "idle"|"pressing"|"lowering"|"closing"|"raising"|
-    "movingX"|"lowerDrop"|"openClaw"|"raiseReturn"|"returnX"
-  >("idle");
-  const stateTime = useRef(0);
+  type AnimState =
+    | "idle" | "pressing" | "lowering" | "closing" | "raising"
+    | "movingX" | "openClaw" | "raiseReturn" | "returnX";
+
+  const animState  = useRef<AnimState>("idle");
+  const stateTime  = useRef(0);
   const dropStartX = useRef(0);
   const dropStartZ = useRef(0);
 
+  // Track claw Y offset separately so pivot positions are never corrupted
+  const clawY = useRef(0);
+
   // ── Joystick drag ─────────────────────────────────────────────────────────
-  const isDragging = useRef(false);
-  const dragStart  = useRef({ x: 0, y: 0 });
-  const joyRotX    = useRef(0);
-  const joyRotZ    = useRef(0);
-  const joyAxis    = useRef<"x"|"z"|null>(null);
+  const isDragging   = useRef(false);
+  const dragStart    = useRef({ x: 0, y: 0 });
+  const joyRotX      = useRef(0);
+  const joyRotZ      = useRef(0);
+  const joyAxis      = useRef<"x" | "z" | null>(null);
+  const joystickPointerId = useRef<number | null>(null);
 
   const onMove = useCallback((e: PointerEvent) => {
     if (!isDragging.current) return;
+    if (joystickPointerId.current !== null && e.pointerId !== joystickPointerId.current) return;
     const dx = (e.clientX - dragStart.current.x) / 120;
     const dy = (e.clientY - dragStart.current.y) / 120;
     if (!joyAxis.current) {
@@ -103,26 +106,38 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
     }
   }, []);
 
-  const onUp = useCallback(() => {
+  const onUp = useCallback((e: PointerEvent) => {
+    if (joystickPointerId.current !== null && e.pointerId !== joystickPointerId.current) return;
     isDragging.current = false;
     joyAxis.current = null;
+    joystickPointerId.current = null;
   }, []);
 
   useEffect(() => {
     const c = gl.domElement;
-    c.addEventListener("pointermove",  onMove);
-    c.addEventListener("pointerup",    onUp);
-    c.addEventListener("pointerleave", onUp);
+    c.addEventListener("pointermove",  onMove as EventListener);
+    c.addEventListener("pointerup",    onUp as EventListener);
+    c.addEventListener("pointercancel", onUp as EventListener);
+    c.addEventListener("pointerleave", onUp as EventListener);
     return () => {
-      c.removeEventListener("pointermove",  onMove);
-      c.removeEventListener("pointerup",    onUp);
-      c.removeEventListener("pointerleave", onUp);
+      c.removeEventListener("pointermove",  onMove as EventListener);
+      c.removeEventListener("pointerup",    onUp as EventListener);
+      c.removeEventListener("pointercancel", onUp as EventListener);
+      c.removeEventListener("pointerleave", onUp as EventListener);
     };
   }, [gl, onMove, onUp]);
 
+  // Helper: apply clawY offset on top of pivot base positions
+  const applyClawY = useCallback((y: number) => {
+    clawY.current = y;
+    if (ropeRef.current) ropeRef.current.position.y = y;
+    if (leftRef.current)  leftRef.current.position.y  = pivotOffsets.left.y  + y;
+    if (rightRef.current) rightRef.current.position.y = pivotOffsets.right.y + y;
+  }, [pivotOffsets]);
+
   // ── Frame loop ────────────────────────────────────────────────────────────
   useFrame((_, delta) => {
-    // 1. Joystick physics loop
+    // 1. Joystick physics
     if (joystickRef.current) {
       if (isDragging.current) {
         joystickRef.current.rotation.x = joyRotX.current;
@@ -135,7 +150,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       }
     }
 
-    // 2. Manual crane direction parsing
+    // 2. Manual crane movement (idle only)
     if (animState.current === "idle") {
       if (joyAxis.current === "x" && Math.abs(joyRotZ.current) > 0.02) {
         const dir = joyRotZ.current < 0 ? 1 : -1;
@@ -160,11 +175,11 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
     if (triggerAnimation && animState.current === "idle") {
       animState.current = "pressing";
       stateTime.current = 0;
-      dropStartX.current = craneGroupRef.current ? craneGroupRef.current.position.x : 0; 
-      dropStartZ.current = vertGroupRef.current ? vertGroupRef.current.position.z : 0;   
+      dropStartX.current = craneGroupRef.current?.position.x ?? 0;
+      dropStartZ.current = vertGroupRef.current?.position.z  ?? 0;
     }
 
-    // 3. Automated track processing cycles
+    // 3. Animation state machine
     switch (animState.current) {
       case "pressing": {
         stateTime.current += delta * 5;
@@ -175,30 +190,24 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "lowering": {
-        const s = delta * 2.5;
-        if (ropeRef.current) ropeRef.current.position.y -= s;
-        if (leftRef.current) leftRef.current.position.y -= s;
-        if (rightRef.current) rightRef.current.position.y -= s;
-        if (ropeRef.current && ropeRef.current.position.y <= LOWER_DEPTH) { animState.current = "closing"; stateTime.current = 0; }
+        const next = clawY.current - delta * 2.5;
+        applyClawY(next);
+        if (clawY.current <= LOWER_DEPTH) { animState.current = "closing"; stateTime.current = 0; }
         break;
       }
       case "closing": {
         stateTime.current += delta * 3;
         const t = Math.min(stateTime.current, 1);
-        if (leftRef.current) leftRef.current.rotation.z  = THREE.MathUtils.lerp(0, CLAW_CLOSE_ROT, t);
-        if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp(0,  -CLAW_CLOSE_ROT, t);
+        if (leftRef.current)  leftRef.current.rotation.z  = THREE.MathUtils.lerp(0,  CLAW_CLOSE_ROT, t);
+        if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp(0, -CLAW_CLOSE_ROT, t);
         if (stateTime.current >= 1) { animState.current = "raising"; }
         break;
       }
       case "raising": {
-        const s = delta * 2.5;
-        if (ropeRef.current) ropeRef.current.position.y += s;
-        if (leftRef.current) leftRef.current.position.y += s;
-        if (rightRef.current) rightRef.current.position.y += s;
-        if (ropeRef.current && ropeRef.current.position.y >= 0) {
-          ropeRef.current.position.y = 0;
-          if (leftRef.current) leftRef.current.position.y = 0;
-          if (rightRef.current) rightRef.current.position.y = 0;
+        const next = clawY.current + delta * 2.5;
+        applyClawY(Math.min(next, 0));
+        if (clawY.current >= 0) {
+          applyClawY(0);
           animState.current = "movingX"; stateTime.current = 0;
         }
         break;
@@ -207,26 +216,19 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         stateTime.current += delta * ANIM_SPEED;
         const t = Math.min(stateTime.current, 1);
         if (craneGroupRef.current) craneGroupRef.current.position.x = THREE.MathUtils.lerp(dropStartX.current, DROP_ZONE_X, t);
-        if (vertGroupRef.current) vertGroupRef.current.position.z  = THREE.MathUtils.lerp(dropStartZ.current, DROP_ZONE_Z, t);
+        if (vertGroupRef.current)  vertGroupRef.current.position.z  = THREE.MathUtils.lerp(dropStartZ.current, DROP_ZONE_Z, t);
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = DROP_ZONE_X;
-          if (vertGroupRef.current) vertGroupRef.current.position.z  = DROP_ZONE_Z;
-          animState.current = "lowerDrop"; stateTime.current = 0;
+          if (vertGroupRef.current)  vertGroupRef.current.position.z  = DROP_ZONE_Z;
+          // Skip lowerDrop — go straight to opening the claw
+          animState.current = "openClaw"; stateTime.current = 0;
         }
-        break;
-      }
-      case "lowerDrop": {
-        const s = delta * 2.5;
-        if (ropeRef.current) ropeRef.current.position.y -= s;
-        if (leftRef.current) leftRef.current.position.y -= s;
-        if (rightRef.current) rightRef.current.position.y -= s;
-        if (ropeRef.current && ropeRef.current.position.y <= LOWER_DEPTH) { animState.current = "openClaw"; stateTime.current = 0; }
         break;
       }
       case "openClaw": {
         stateTime.current += delta * 3;
         const t = Math.min(stateTime.current, 1);
-        if (leftRef.current) leftRef.current.rotation.z  = THREE.MathUtils.lerp(-CLAW_CLOSE_ROT, 0, t);
+        if (leftRef.current)  leftRef.current.rotation.z  = THREE.MathUtils.lerp(-CLAW_CLOSE_ROT, 0, t);
         if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp( CLAW_CLOSE_ROT, 0, t);
         if (stateTime.current >= 1) {
           onAnimationComplete();
@@ -235,26 +237,18 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "raiseReturn": {
-        const s = delta * 2.5;
-        if (ropeRef.current) ropeRef.current.position.y += s;
-        if (leftRef.current) leftRef.current.position.y += s;
-        if (rightRef.current) rightRef.current.position.y += s;
-        if (ropeRef.current && ropeRef.current.position.y >= 0) {
-          ropeRef.current.position.y = 0;
-          if (leftRef.current) leftRef.current.position.y = 0;
-          if (rightRef.current) rightRef.current.position.y = 0;
-          animState.current = "returnX"; stateTime.current = 0;
-        }
+        // Already at y=0 (no lowering was done), go straight to returnX
+        animState.current = "returnX"; stateTime.current = 0;
         break;
       }
       case "returnX": {
         stateTime.current += delta * ANIM_SPEED;
         const t = Math.min(stateTime.current, 1);
         if (craneGroupRef.current) craneGroupRef.current.position.x = THREE.MathUtils.lerp(DROP_ZONE_X, 0, t);
-        if (vertGroupRef.current) vertGroupRef.current.position.z  = THREE.MathUtils.lerp(DROP_ZONE_Z, 0, t);
+        if (vertGroupRef.current)  vertGroupRef.current.position.z  = THREE.MathUtils.lerp(DROP_ZONE_Z, 0, t);
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = 0;
-          if (vertGroupRef.current) vertGroupRef.current.position.z  = 0;
+          if (vertGroupRef.current)  vertGroupRef.current.position.z  = 0;
           animState.current = "idle";
           setTriggerAnimation(false);
         }
@@ -270,25 +264,31 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       <primitive object={clones["body"]} />
 
       {/* Button Assembly */}
-      <group 
+      <group
         ref={buttonRef}
         onClick={(e) => {
           e.stopPropagation();
           onButtonClick();
         }}
+        onPointerDown={(e) => { e.stopPropagation(); }}
+        onPointerUp={(e) => { e.stopPropagation(); }}
       >
         <primitive object={clones["button"]} />
       </group>
 
-      {/* Joystick Pivot Wrapper (Handles custom hinge rotation natively) */}
+      {/* Joystick Pivot Wrapper */}
       <group
         ref={joystickRef}
         position={pivotOffsets.joystick}
         onPointerDown={(e) => {
           e.stopPropagation();
           isDragging.current = true;
+          joystickPointerId.current = e.pointerId;
           dragStart.current = { x: e.clientX, y: e.clientY };
           joyAxis.current = null;
+          // Capture pointer for reliable touch tracking
+          (e.target as Element & { setPointerCapture?: (id: number) => void })
+            ?.setPointerCapture?.(e.pointerId);
         }}
       >
         <primitive object={clones["joystick"]} position={pivotOffsets.joystick.clone().negate()} />
@@ -296,26 +296,29 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
 
       {/* MAIN HORIZONTAL CRANE TRACK ASSEMBLY */}
       <group ref={craneGroupRef}>
-        {/* Sides rail tracks X axis movement */}
         <primitive object={clones["sides"]} />
 
-        {/* Vert assembly tracks X via parent, and translates inside on Z axis */}
         <group ref={vertGroupRef}>
-          {/* Holder follows horizontal tracking layout perfectly */}
           <primitive object={clones["holder"]} />
-          
-          {/* Rope track vertically */}
+
+          {/* Rope */}
           <group ref={ropeRef}>
             <primitive object={clones["rope"]} />
           </group>
 
-          {/* Left Claw Pivot Wrapper */}
-          <group ref={leftRef} position={pivotOffsets.left}>
+          {/* Left Claw — initial Y set in useEffect via applyClawY(0) */}
+          <group
+            ref={leftRef}
+            position={[pivotOffsets.left.x, pivotOffsets.left.y, pivotOffsets.left.z]}
+          >
             <primitive object={clones["left"]} position={pivotOffsets.left.clone().negate()} />
           </group>
 
-          {/* Right Claw Pivot Wrapper */}
-          <group ref={rightRef} position={pivotOffsets.right}>
+          {/* Right Claw */}
+          <group
+            ref={rightRef}
+            position={[pivotOffsets.right.x, pivotOffsets.right.y, pivotOffsets.right.z]}
+          >
             <primitive object={clones["right"]} position={pivotOffsets.right.clone().negate()} />
           </group>
         </group>
