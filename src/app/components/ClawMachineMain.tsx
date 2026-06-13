@@ -4,8 +4,6 @@ import { useRef, useState, createContext, useContext, useEffect } from 'react';
 import Image from 'next/image';
 import ClawMachineViewer from './ClawMachine';
 
-// ── Skills data ─────────────────────────────────────────────────────────────
-
 export const skills = [
   { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
   { name: 'React',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg' },
@@ -32,8 +30,6 @@ export const SKILL_PALETTES: [string, string, string, string][] = [
   ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
 ];
 
-// ── Context ──────────────────────────────────────────────────────────────────
-
 interface ClawMachineCtx {
   unlocked: Set<number>;
   justUnlocked: number | null;
@@ -54,8 +50,6 @@ export function useClawMachine() {
   return ctx;
 }
 
-// ── Provider ─────────────────────────────────────────────────────────────────
-
 export function ClawMachineProvider({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
@@ -63,7 +57,6 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
   const [toast, setToast]               = useState('');
 
   const timerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Guard against double-fire: track whether we already queued an animation this cycle
   const animationQueued = useRef(false);
 
   function showToast(msg: string) {
@@ -73,7 +66,6 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
   }
 
   function handlePlayClick() {
-    // Prevent double-trigger from event bubbling or rapid taps
     if (triggerAnimation || animationQueued.current) return;
     const locked = skills.map((_, i) => i).filter(i => !unlocked.has(i));
     if (!locked.length) { showToast('All skills unlocked! 🎉'); return; }
@@ -81,7 +73,6 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
     setTriggerAnimation(true);
   }
 
-  // Reset the queued guard once the animation state is confirmed active
   useEffect(() => {
     if (!triggerAnimation) {
       animationQueued.current = false;
@@ -116,8 +107,6 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
     </ClawMachineContext.Provider>
   );
 }
-
-// ── Claw Machine 3D Viewer + Controls ─────────────────────────────────────────
 
 export function ClawMachine() {
   const {
@@ -154,23 +143,9 @@ export function ClawMachine() {
   );
 }
 
-// ── Skills Grid ───────────────────────────────────────────────────────────────
-
 export function SkillsGrid() {
   const { unlocked, justUnlocked } = useClawMachine();
   const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const gridEl = gridRef.current;
-    if (!gridEl) return;
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaX !== 0) return;
-      e.preventDefault();
-      gridEl.scrollLeft += e.deltaY;
-    };
-    gridEl.addEventListener('wheel', handleWheel, { passive: false });
-    return () => { gridEl.removeEventListener('wheel', handleWheel); };
-  }, []);
 
   useEffect(() => {
     if (justUnlocked === null || !gridRef.current) return;
@@ -225,8 +200,6 @@ export function SkillsGrid() {
     </div>
   );
 }
-
-// ── Toast ──────────────────────────────────────────────────────────────────────
 
 export function ClawMachineToast() {
   const { toast } = useClawMachine();

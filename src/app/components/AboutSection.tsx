@@ -4,8 +4,6 @@ import React from 'react';
 import '../styles/about.css';
 import { ClawMachineProvider, ClawMachine, SkillsGrid, ClawMachineToast } from './ClawMachineMain';
 
-// ── Bio ───────────────────────────────────────────────────────────────────────
-
 function AboutBio() {
   return (
     <div className="about-intro">
@@ -29,26 +27,22 @@ function AboutBio() {
   );
 }
 
-// ── Skills + Model row ────────────────────────────────────────────────────────
-
 function AboutSkillsRow() {
   return (
     <div className="about-skills-row">
-      {/* 70% — skills grid */}
+      {/* Left: 70% — claw machine */}
+      <div className="about-model-panel">
+        <ClawMachine />
+      </div>
+
+      {/* Right: 30% — vertically scrollable closed skills container */}
       <div className="about-skills-panel">
         <p className="skills-label">Skills</p>
         <SkillsGrid />
       </div>
-
-      {/* 30% — claw machine */}
-      <div className="about-model-panel">
-        <ClawMachine />
-      </div>
     </div>
   );
 }
-
-// ── Section ───────────────────────────────────────────────────────────────────
 
 export default function AboutSection() {
   return (
@@ -62,7 +56,7 @@ export default function AboutSection() {
           {/* Bio — full width */}
           <AboutBio />
 
-          {/* Skills grid (70%) + 3D model (30%) */}
+          {/* Machine & Skills Row */}
           <AboutSkillsRow />
         </div>
       </section>

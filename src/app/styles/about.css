@@ -492,10 +492,7 @@
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* ─── about.css additions ───────────────────────────────────────────────────
-   Add these rules to your existing about.css (or replace the relevant blocks).
-   They handle the new full-width bio + 70/30 skills-row layout.
-─────────────────────────────────────────────────────────────────────────── */
+/* ─── Layout Overhauls (Mobile-First responsive mechanics) ─── */
 
 /* Bio — spans the full wrapper width */
 .about-intro {
@@ -503,44 +500,67 @@
   margin-bottom: 2.5rem;
 }
 
-/* Skills row: grid on the left, model on the right */
+/* Skills + Model row core */
 .about-skills-row {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column; /* Small screens/phones: stacks elements vertically */
   gap: 2rem;
   width: 100%;
 }
 
-/* 70% — non-scrollable skills grid */
-.about-skills-panel {
-  flex: 0 0 70%;
-  max-width: 70%;
-}
-
-/* Make the skills grid wrap instead of scroll */
-.about-skills-panel .skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-  gap: 0.75rem;
-  overflow: visible;   /* override any horizontal scroll from the base rule */
-  flex-wrap: unset;    /* reset if the base rule uses flex */
-}
-
-/* 30% — claw machine */
+/* Small Screens (Phones): machine goes on top (order 1) */
 .about-model-panel {
-  flex: 0 0 30%;
-  max-width: 30%;
+  order: 1;
+  flex: 0 0 100%;
+  max-width: 100%;
 }
 
-/* Stack vertically on narrow screens */
-@media (max-width: 768px) {
+/* Small Screens (Phones): skills grid goes underneath (order 2) */
+.about-skills-panel {
+  order: 2;
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+/* Small Screens (Phones): Horizontally scrollable row only */
+.about-skills-panel .skills-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.about-skills-panel .skills-grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Bigger Screens Desktop Breakpoint (868px and up) */
+@media (min-width: 868px) {
   .about-skills-row {
-    flex-direction: column;
+    flex-direction: row;     /* Side-by-side positioning */
+    align-items: flex-start;
   }
 
-  .about-skills-panel,
+  /* Left Side: 70% width, unscrollable grid layout */
+  .about-skills-panel {
+    order: 1;
+    flex: 0 0 70%;
+    max-width: 70%;
+  }
+
+  .about-skills-panel .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.75rem;
+    overflow: visible;      /* Removes horizontal scrolling */
+    flex-wrap: unset;
+  }
+
+  /* Right Side: 30% width model machine */
   .about-model-panel {
-    flex: 0 0 100%;
-    max-width: 100%;
+    order: 2;
+    flex: 0 0 30%;
+    max-width: 30%;
   }
 }

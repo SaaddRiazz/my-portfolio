@@ -70,7 +70,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   // ── Animation state ───────────────────────────────────────────────────────
   type AnimState =
     | "idle" | "pressing" | "lowering" | "closing" | "raising"
-    | "movingX" | "openClaw" | "raiseReturn" | "returnX";
+    | "movingX" | "openClaw" | "raiseReturn" | "returnX" | "cooldown";
 
   const animState  = useRef<AnimState>("idle");
   const stateTime  = useRef(0);
@@ -220,7 +220,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = DROP_ZONE_X;
           if (vertGroupRef.current)  vertGroupRef.current.position.z  = DROP_ZONE_Z;
-          // Skip lowerDrop — go straight to opening the claw
           animState.current = "openClaw"; stateTime.current = 0;
         }
         break;
@@ -237,7 +236,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "raiseReturn": {
-        // Already at y=0 (no lowering was done), go straight to returnX
         animState.current = "returnX"; stateTime.current = 0;
         break;
       }
@@ -249,8 +247,14 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = 0;
           if (vertGroupRef.current)  vertGroupRef.current.position.z  = 0;
-          animState.current = "idle";
           setTriggerAnimation(false);
+          animState.current = "cooldown";
+        }
+        break;
+      }
+      case "cooldown": {
+        if (!triggerAnimation) {
+          animState.current = "idle";
         }
         break;
       }
@@ -260,10 +264,8 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
 
   return (
     <>
-      {/* Background Frame Core */}
       <primitive object={clones["body"]} />
 
-      {/* Button Assembly */}
       <group
         ref={buttonRef}
         onClick={(e) => {
@@ -276,7 +278,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         <primitive object={clones["button"]} />
       </group>
 
-      {/* Joystick Pivot Wrapper */}
       <group
         ref={joystickRef}
         position={pivotOffsets.joystick}
@@ -286,7 +287,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
           joystickPointerId.current = e.pointerId;
           dragStart.current = { x: e.clientX, y: e.clientY };
           joyAxis.current = null;
-          // Capture pointer for reliable touch tracking
           (e.target as Element & { setPointerCapture?: (id: number) => void })
             ?.setPointerCapture?.(e.pointerId);
         }}
@@ -294,19 +294,16 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         <primitive object={clones["joystick"]} position={pivotOffsets.joystick.clone().negate()} />
       </group>
 
-      {/* MAIN HORIZONTAL CRANE TRACK ASSEMBLY */}
       <group ref={craneGroupRef}>
         <primitive object={clones["sides"]} />
 
         <group ref={vertGroupRef}>
           <primitive object={clones["holder"]} />
 
-          {/* Rope */}
           <group ref={ropeRef}>
             <primitive object={clones["rope"]} />
           </group>
 
-          {/* Left Claw — initial Y set in useEffect via applyClawY(0) */}
           <group
             ref={leftRef}
             position={[pivotOffsets.left.x, pivotOffsets.left.y, pivotOffsets.left.z]}
@@ -314,7 +311,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
             <primitive object={clones["left"]} position={pivotOffsets.left.clone().negate()} />
           </group>
 
-          {/* Right Claw */}
           <group
             ref={rightRef}
             position={[pivotOffsets.right.x, pivotOffsets.right.y, pivotOffsets.right.z]}
