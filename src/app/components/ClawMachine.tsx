@@ -4,16 +4,18 @@ import React, { Suspense, useRef, useCallback, useEffect, useMemo } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import FilledBox from "./FilledBox";
 
 const MODEL_PARTS = ["body", "button", "holder", "joystick", "left", "right", "rope", "sides"];
 
 const JOYSTICK_MAX_ANGLE = 0.4;
 const JOYSTICK_RETURN_SPD = 8;
-const CRANE_MOVE_SPEED = 3.5;
+const CRANE_MOVE_SPEED = 12;
 
 const DROP_ZONE_X = -3.5;
 const DROP_ZONE_Z = 2.0;
 const LOWER_DEPTH = -2.5;
+const CLAW_REST_Y = 1.5;
 const CLAW_CLOSE_ROT = 0.5;
 const ANIM_SPEED = 2;
 
@@ -67,6 +69,13 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const leftRef = useRef<THREE.Group>(null);
   const rightRef = useRef<THREE.Group>(null);
 
+  // ── Held ball ─────────────────────────────────────────────────────────────
+  const ballRef = useRef<THREE.Mesh>(null);
+  const ballVisible = useRef(false);
+  const ballDropping = useRef(false);
+  const ballSpawned = useRef(false);
+  const ballVelY = useRef(0);
+
   // ── Animation state ───────────────────────────────────────────────────────
   type AnimState =
     | "idle" | "pressing" | "lowering" | "closing" | "raising"
@@ -78,7 +87,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const dropStartZ = useRef(0);
 
   // Track claw Y offset separately so pivot positions are never corrupted
-  const clawY = useRef(0);
+  const clawY = useRef(CLAW_REST_Y);
 
   // ── Joystick drag ─────────────────────────────────────────────────────────
   const isDragging = useRef(false);
@@ -91,8 +100,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const onMove = useCallback((e: PointerEvent) => {
     if (!isDragging.current) return;
     if (joystickPointerId.current !== null && e.pointerId !== joystickPointerId.current) return;
-    // Use a smaller divisor so touch feels as responsive as mouse.
-    // 60px of drag = full joystick deflection.
     const dx = (e.clientX - dragStart.current.x) / 60;
     const dy = (e.clientY - dragStart.current.y) / 60;
     const LOCK_THRESHOLD = 0.04;
@@ -118,8 +125,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
 
   useEffect(() => {
     const c = gl.domElement;
-    // Prevent the browser from claiming touch events for scrolling,
-    // which would otherwise cancel our pointer capture mid-drag.
     c.style.touchAction = "none";
     c.addEventListener("pointermove", onMove as EventListener);
     c.addEventListener("pointerup", onUp as EventListener);
@@ -142,8 +147,16 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
     if (rightRef.current) rightRef.current.position.y = pivotOffsets.right.y + y;
   }, [pivotOffsets]);
 
+  const initializedRest = useRef(false);
+
   // ── Frame loop ────────────────────────────────────────────────────────────
   useFrame((_, delta) => {
+    // Apply initial rest offset once refs are available
+    if (!initializedRest.current && ropeRef.current) {
+      initializedRest.current = true;
+      applyClawY(CLAW_REST_Y);
+    }
+
     // 1. Joystick physics
     if (joystickRef.current) {
       if (isDragging.current) {
@@ -186,10 +199,29 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       dropStartZ.current = vertGroupRef.current?.position.z ?? 0;
     }
 
+    // Ball: follow claw when held, drop when released
+    if (ballRef.current) {
+      if (ballVisible.current && !ballDropping.current) {
+        // Mirror claw world position: craneGroup.x + vertGroup.z + clawY
+        const cx = craneGroupRef.current?.position.x ?? 0;
+        const cz = vertGroupRef.current?.position.z ?? 0;
+        ballRef.current.position.set(cx, pivotOffsets.left.y + clawY.current - 1.0, cz - 1.0);
+        ballRef.current.visible = true;
+      } else if (ballDropping.current) {
+        ballVelY.current -= 18 * delta; // gravity
+        ballRef.current.position.y += ballVelY.current * delta;
+        if (ballRef.current.position.y < -10) {
+          ballDropping.current = false;
+          ballVisible.current = false;
+          ballRef.current.visible = false;
+        }
+      }
+    }
+
     // 3. Animation state machine
     switch (animState.current) {
       case "pressing": {
-        stateTime.current += delta * 5;
+        stateTime.current += delta * 10;
         if (buttonRef.current) {
           buttonRef.current.position.y = -Math.sin(Math.min(stateTime.current, Math.PI)) * 0.1;
         }
@@ -197,13 +229,26 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "lowering": {
-        const next = clawY.current - delta * 2.5;
+        const next = clawY.current - delta * 8;
         applyClawY(next);
         if (clawY.current <= LOWER_DEPTH) { animState.current = "closing"; stateTime.current = 0; }
         break;
       }
       case "closing": {
-        stateTime.current += delta * 3;
+        if (!ballSpawned.current) {
+          // Spawn ball at claw position
+          ballSpawned.current = true;
+          ballVisible.current = true;
+          ballDropping.current = false;
+          ballVelY.current = 0;
+          if (ballRef.current) {
+            const cx = craneGroupRef.current?.position.x ?? 0;
+            const cz = vertGroupRef.current?.position.z ?? 0;
+            ballRef.current.position.set(cx, pivotOffsets.left.y + clawY.current - 1.0, cz - 1.0);
+            ballRef.current.visible = true;
+          }
+        }
+        stateTime.current += delta * 5;
         const t = Math.min(stateTime.current, 1);
         if (leftRef.current) leftRef.current.rotation.z = THREE.MathUtils.lerp(0, CLAW_CLOSE_ROT, t);
         if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp(0, -CLAW_CLOSE_ROT, t);
@@ -211,10 +256,10 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "raising": {
-        const next = clawY.current + delta * 2.5;
-        applyClawY(Math.min(next, 0));
-        if (clawY.current >= 0) {
-          applyClawY(0);
+        const next = clawY.current + delta * 8;
+        applyClawY(Math.min(next, CLAW_REST_Y));
+        if (clawY.current >= CLAW_REST_Y) {
+          applyClawY(CLAW_REST_Y);
           animState.current = "movingX"; stateTime.current = 0;
         }
         break;
@@ -232,6 +277,11 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         break;
       }
       case "openClaw": {
+        if (!ballDropping.current && ballVisible.current && stateTime.current < 0.05) {
+          // Release ball to drop
+          ballDropping.current = true;
+          ballVelY.current = 0;
+        }
         stateTime.current += delta * 3;
         const t = Math.min(stateTime.current, 1);
         if (leftRef.current) leftRef.current.rotation.z = THREE.MathUtils.lerp(CLAW_CLOSE_ROT, 0, t);
@@ -261,6 +311,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       }
       case "cooldown": {
         if (!triggerAnimation) {
+          ballSpawned.current = false;
           animState.current = "idle";
         }
         break;
@@ -294,8 +345,6 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
           joystickPointerId.current = e.pointerId;
           dragStart.current = { x: e.clientX, y: e.clientY };
           joyAxis.current = null;
-          // Capture on the canvas element so pointermove keeps firing
-          // even when the pointer drifts outside the joystick mesh on touch.
           try { gl.domElement.setPointerCapture(e.pointerId); } catch {/* noop */ }
         }}
       >
@@ -327,6 +376,17 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
           </group>
         </group>
       </group>
+      {/* Held / dropping ball */}
+      <mesh ref={ballRef} visible={false}>
+        <sphereGeometry args={[1.0, 16, 16]} />
+        <meshStandardMaterial
+          color="#ff4488"
+          emissive="#ff2266"
+          emissiveIntensity={0.8}
+          roughness={0.3}
+          metalness={0.6}
+        />
+      </mesh>
     </>
   );
 }
@@ -363,6 +423,8 @@ interface ViewerProps {
   triggerAnimation: boolean;
   setTriggerAnimation: (val: boolean) => void;
   onButtonClick: () => void;
+  unlockedCount: number;
+  totalSkills: number;
 }
 
 export default function ClawMachineViewer({
@@ -370,6 +432,8 @@ export default function ClawMachineViewer({
   triggerAnimation,
   setTriggerAnimation,
   onButtonClick,
+  unlockedCount,
+  totalSkills,
 }: ViewerProps) {
   return (
     <div style={{ width: "100%", height: "100%" }}>
@@ -384,6 +448,7 @@ export default function ClawMachineViewer({
             setTriggerAnimation={setTriggerAnimation}
             onButtonClick={onButtonClick}
           />
+          <FilledBox unlockedCount={unlockedCount} totalSkills={totalSkills} />
           <CameraRig />
         </Suspense>
       </Canvas>

@@ -114,7 +114,7 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
 
 export function ClawMachine() {
   const {
-    remaining, handlePlayClick,
+    remaining, handlePlayClick, unlocked,
     processSkillUnlock, triggerAnimation, setTriggerAnimation,
   } = useClawMachine();
 
@@ -126,6 +126,8 @@ export function ClawMachine() {
           triggerAnimation={triggerAnimation}
           setTriggerAnimation={setTriggerAnimation}
           onButtonClick={handlePlayClick}
+          unlockedCount={unlocked.size}
+          totalSkills={skills.length}
         />
       </div>
 
