@@ -2,7 +2,7 @@
 
 import React from 'react';
 import '../styles/about.css';
-import { ClawMachineProvider, ClawMachine, SkillsGrid, ClawMachineToast } from './ClawMachineMain';
+import { ClawMachineProvider, ClawMachine, SkillsGrid, ClawMachineToast, useClawMachine } from './ClawMachineMain';
 
 function AboutBio() {
   return (
@@ -28,17 +28,28 @@ function AboutBio() {
 }
 
 function AboutSkillsRow() {
+  const { remaining, handleUnlockAll, triggerAnimation } = useClawMachine();
+
   return (
     <div className="about-skills-row">
-      {/* Left: 70% — claw machine */}
-      <div className="about-model-panel">
-        <ClawMachine />
+      {/* Left: skills panel */}
+      <div className="about-skills-panel">
+        <div className="skills-panel-header">
+          <p className="skills-label">Skills</p>
+          <button
+            onClick={handleUnlockAll}
+            disabled={remaining === 0 || triggerAnimation}
+            className="unlock-all-btn"
+          >
+            {remaining > 0 ? 'Unlock All' : 'Unlocked'}
+          </button>
+        </div>
+        <SkillsGrid />
       </div>
 
-      {/* Right: 30% — vertically scrollable closed skills container */}
-      <div className="about-skills-panel">
-        <p className="skills-label">Skills</p>
-        <SkillsGrid />
+      {/* Right: claw machine */}
+      <div className="about-model-panel">
+        <ClawMachine />
       </div>
     </div>
   );

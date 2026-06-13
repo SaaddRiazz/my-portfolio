@@ -5,16 +5,18 @@ import Image from 'next/image';
 import ClawMachineViewer from './ClawMachine';
 
 export const skills = [
-  { name: 'Unity',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
-  { name: 'React',      icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg' },
-  { name: 'Python',     icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg' },
+  { name: 'Unity', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/unity/unity-original.svg' },
+  { name: 'React', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/react/react-original.svg' },
+  { name: 'Python', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original.svg' },
   { name: 'TypeScript', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/typescript/typescript-original.svg' },
-  { name: 'Node.js',    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg' },
-  { name: 'Next.js',    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg' },
-  { name: 'C#',         icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg' },
-  { name: 'Java',       icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg' },
-  { name: 'Blender',    icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/blender/blender-original.svg' },
-  { name: 'Git',        icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg' },
+  { name: 'Node.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nodejs/nodejs-original.svg' },
+  { name: 'Next.js', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/nextjs/nextjs-original.svg' },
+  { name: 'C#', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/csharp/csharp-original.svg' },
+  { name: 'Java', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg' },
+  { name: 'Blender', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/blender/blender-original.svg' },
+  { name: 'Git', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg' },
+  { name: 'C++', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg' },
+  { name: 'Supabase', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/supabase/supabase-original.svg' },
 ];
 
 export const SKILL_PALETTES: [string, string, string, string][] = [
@@ -28,6 +30,8 @@ export const SKILL_PALETTES: [string, string, string, string][] = [
   ['#7a1c00', '#4d1200', '#f89820', '#ffcc44'],
   ['#1a3a5c', '#0d2240', '#ea7600', '#ffaa44'],
   ['#4d0000', '#2e0000', '#f05032', '#ff7755'],
+  ['#004482', '#002244', '#00599c', '#60aaff'],
+  ['#0b3a25', '#042013', '#3ecf8e', '#6effb0'],
 ];
 
 interface ClawMachineCtx {
@@ -51,12 +55,12 @@ export function useClawMachine() {
 }
 
 export function ClawMachineProvider({ children }: { children: React.ReactNode }) {
-  const [unlocked, setUnlocked]         = useState<Set<number>>(new Set());
+  const [unlocked, setUnlocked] = useState<Set<number>>(new Set());
   const [justUnlocked, setJustUnlocked] = useState<number | null>(null);
   const [triggerAnimation, setTriggerAnimation] = useState(false);
-  const [toast, setToast]               = useState('');
+  const [toast, setToast] = useState('');
 
-  const timerRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationQueued = useRef(false);
 
   function showToast(msg: string) {
@@ -110,7 +114,7 @@ export function ClawMachineProvider({ children }: { children: React.ReactNode })
 
 export function ClawMachine() {
   const {
-    remaining, handleUnlockAll, handlePlayClick,
+    remaining, handlePlayClick,
     processSkillUnlock, triggerAnimation, setTriggerAnimation,
   } = useClawMachine();
 
@@ -125,20 +129,11 @@ export function ClawMachine() {
         />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-        <p className="status-message" style={{ margin: 0 }}>
-          {remaining > 0
-            ? <>Click the <strong>button</strong> to claw a skill — <span className="highlight">{remaining}</span> remaining</>
-            : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
-        </p>
-        <button
-          onClick={handleUnlockAll}
-          disabled={remaining === 0 || triggerAnimation}
-          className="unlock-all-btn"
-        >
-          {remaining > 0 ? 'Unlock All' : 'All Skills Discovered'}
-        </button>
-      </div>
+      <p className="status-message" style={{ margin: 0 }}>
+        {remaining > 0
+          ? <>Click the <strong>button</strong> to claw a skill — <span className="highlight">{remaining}</span> remaining</>
+          : <strong className="success-highlight">All skills unlocked! 🎉</strong>}
+      </p>
     </div>
   );
 }
@@ -161,7 +156,7 @@ export function SkillsGrid() {
     <div className="skills-grid" ref={gridRef}>
       {skills.map((s, i) => {
         const isUnlocked = unlocked.has(i);
-        const isNew      = justUnlocked === i;
+        const isNew = justUnlocked === i;
         const [gradFrom, gradTo, ring, glow] = SKILL_PALETTES[i];
 
         const unlockedStyle = isUnlocked ? {

@@ -7,20 +7,20 @@ import * as THREE from "three";
 
 const MODEL_PARTS = ["body", "button", "holder", "joystick", "left", "right", "rope", "sides"];
 
-const JOYSTICK_MAX_ANGLE  = 0.4;
+const JOYSTICK_MAX_ANGLE = 0.4;
 const JOYSTICK_RETURN_SPD = 8;
-const CRANE_MOVE_SPEED    = 3.5;
+const CRANE_MOVE_SPEED = 3.5;
 
-const DROP_ZONE_X    = -3.5;
-const DROP_ZONE_Z    =  2.0;
-const LOWER_DEPTH    = -2.5;
-const CLAW_CLOSE_ROT =  0.5;
-const ANIM_SPEED     =  2;
+const DROP_ZONE_X = -3.5;
+const DROP_ZONE_Z = 2.0;
+const LOWER_DEPTH = -2.5;
+const CLAW_CLOSE_ROT = 0.5;
+const ANIM_SPEED = 2;
 
 const CRANE_MIN_X = -3.5;
-const CRANE_MAX_X =  3.5;
+const CRANE_MAX_X = 3.5;
 const CRANE_MIN_Z = -2.0;
-const CRANE_MAX_Z =  2.0;
+const CRANE_MAX_Z = 2.0;
 
 interface ModelAssemblyProps {
   onAnimationComplete: () => void;
@@ -53,27 +53,27 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
     };
     return {
       joystick: getPivotOffset(clones["joystick"], "bottom"),
-      left:     getPivotOffset(clones["left"],     "top"),
-      right:    getPivotOffset(clones["right"],    "top"),
+      left: getPivotOffset(clones["left"], "top"),
+      right: getPivotOffset(clones["right"], "top"),
     };
   }, [clones]);
 
   // Transform Animation References
   const craneGroupRef = useRef<THREE.Group>(null);
-  const vertGroupRef  = useRef<THREE.Group>(null);
-  const buttonRef     = useRef<THREE.Group>(null);
-  const joystickRef   = useRef<THREE.Group>(null);
-  const ropeRef       = useRef<THREE.Group>(null);
-  const leftRef       = useRef<THREE.Group>(null);
-  const rightRef      = useRef<THREE.Group>(null);
+  const vertGroupRef = useRef<THREE.Group>(null);
+  const buttonRef = useRef<THREE.Group>(null);
+  const joystickRef = useRef<THREE.Group>(null);
+  const ropeRef = useRef<THREE.Group>(null);
+  const leftRef = useRef<THREE.Group>(null);
+  const rightRef = useRef<THREE.Group>(null);
 
   // ── Animation state ───────────────────────────────────────────────────────
   type AnimState =
     | "idle" | "pressing" | "lowering" | "closing" | "raising"
     | "movingX" | "openClaw" | "raiseReturn" | "returnX" | "cooldown";
 
-  const animState  = useRef<AnimState>("idle");
-  const stateTime  = useRef(0);
+  const animState = useRef<AnimState>("idle");
+  const stateTime = useRef(0);
   const dropStartX = useRef(0);
   const dropStartZ = useRef(0);
 
@@ -81,21 +81,24 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const clawY = useRef(0);
 
   // ── Joystick drag ─────────────────────────────────────────────────────────
-  const isDragging   = useRef(false);
-  const dragStart    = useRef({ x: 0, y: 0 });
-  const joyRotX      = useRef(0);
-  const joyRotZ      = useRef(0);
-  const joyAxis      = useRef<"x" | "z" | null>(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const joyRotX = useRef(0);
+  const joyRotZ = useRef(0);
+  const joyAxis = useRef<"x" | "z" | null>(null);
   const joystickPointerId = useRef<number | null>(null);
 
   const onMove = useCallback((e: PointerEvent) => {
     if (!isDragging.current) return;
     if (joystickPointerId.current !== null && e.pointerId !== joystickPointerId.current) return;
-    const dx = (e.clientX - dragStart.current.x) / 120;
-    const dy = (e.clientY - dragStart.current.y) / 120;
+    // Use a smaller divisor so touch feels as responsive as mouse.
+    // 60px of drag = full joystick deflection.
+    const dx = (e.clientX - dragStart.current.x) / 60;
+    const dy = (e.clientY - dragStart.current.y) / 60;
+    const LOCK_THRESHOLD = 0.04;
     if (!joyAxis.current) {
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 0.04) joyAxis.current = "x";
-      else if (Math.abs(dy) > 0.04) joyAxis.current = "z";
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > LOCK_THRESHOLD) joyAxis.current = "x";
+      else if (Math.abs(dy) > LOCK_THRESHOLD) joyAxis.current = "z";
     }
     if (joyAxis.current === "x") {
       joyRotX.current = 0;
@@ -115,13 +118,17 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
 
   useEffect(() => {
     const c = gl.domElement;
-    c.addEventListener("pointermove",  onMove as EventListener);
-    c.addEventListener("pointerup",    onUp as EventListener);
+    // Prevent the browser from claiming touch events for scrolling,
+    // which would otherwise cancel our pointer capture mid-drag.
+    c.style.touchAction = "none";
+    c.addEventListener("pointermove", onMove as EventListener);
+    c.addEventListener("pointerup", onUp as EventListener);
     c.addEventListener("pointercancel", onUp as EventListener);
     c.addEventListener("pointerleave", onUp as EventListener);
     return () => {
-      c.removeEventListener("pointermove",  onMove as EventListener);
-      c.removeEventListener("pointerup",    onUp as EventListener);
+      c.style.touchAction = "";
+      c.removeEventListener("pointermove", onMove as EventListener);
+      c.removeEventListener("pointerup", onUp as EventListener);
       c.removeEventListener("pointercancel", onUp as EventListener);
       c.removeEventListener("pointerleave", onUp as EventListener);
     };
@@ -131,7 +138,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
   const applyClawY = useCallback((y: number) => {
     clawY.current = y;
     if (ropeRef.current) ropeRef.current.position.y = y;
-    if (leftRef.current)  leftRef.current.position.y  = pivotOffsets.left.y  + y;
+    if (leftRef.current) leftRef.current.position.y = pivotOffsets.left.y + y;
     if (rightRef.current) rightRef.current.position.y = pivotOffsets.right.y + y;
   }, [pivotOffsets]);
 
@@ -176,7 +183,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       animState.current = "pressing";
       stateTime.current = 0;
       dropStartX.current = craneGroupRef.current?.position.x ?? 0;
-      dropStartZ.current = vertGroupRef.current?.position.z  ?? 0;
+      dropStartZ.current = vertGroupRef.current?.position.z ?? 0;
     }
 
     // 3. Animation state machine
@@ -198,7 +205,7 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       case "closing": {
         stateTime.current += delta * 3;
         const t = Math.min(stateTime.current, 1);
-        if (leftRef.current)  leftRef.current.rotation.z  = THREE.MathUtils.lerp(0,  CLAW_CLOSE_ROT, t);
+        if (leftRef.current) leftRef.current.rotation.z = THREE.MathUtils.lerp(0, CLAW_CLOSE_ROT, t);
         if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp(0, -CLAW_CLOSE_ROT, t);
         if (stateTime.current >= 1) { animState.current = "raising"; }
         break;
@@ -216,10 +223,10 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         stateTime.current += delta * ANIM_SPEED;
         const t = Math.min(stateTime.current, 1);
         if (craneGroupRef.current) craneGroupRef.current.position.x = THREE.MathUtils.lerp(dropStartX.current, DROP_ZONE_X, t);
-        if (vertGroupRef.current)  vertGroupRef.current.position.z  = THREE.MathUtils.lerp(dropStartZ.current, DROP_ZONE_Z, t);
+        if (vertGroupRef.current) vertGroupRef.current.position.z = THREE.MathUtils.lerp(dropStartZ.current, DROP_ZONE_Z, t);
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = DROP_ZONE_X;
-          if (vertGroupRef.current)  vertGroupRef.current.position.z  = DROP_ZONE_Z;
+          if (vertGroupRef.current) vertGroupRef.current.position.z = DROP_ZONE_Z;
           animState.current = "openClaw"; stateTime.current = 0;
         }
         break;
@@ -227,8 +234,8 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
       case "openClaw": {
         stateTime.current += delta * 3;
         const t = Math.min(stateTime.current, 1);
-        if (leftRef.current)  leftRef.current.rotation.z  = THREE.MathUtils.lerp(-CLAW_CLOSE_ROT, 0, t);
-        if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp( CLAW_CLOSE_ROT, 0, t);
+        if (leftRef.current) leftRef.current.rotation.z = THREE.MathUtils.lerp(CLAW_CLOSE_ROT, 0, t);
+        if (rightRef.current) rightRef.current.rotation.z = THREE.MathUtils.lerp(-CLAW_CLOSE_ROT, 0, t);
         if (stateTime.current >= 1) {
           onAnimationComplete();
           animState.current = "raiseReturn"; stateTime.current = 0;
@@ -243,10 +250,10 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
         stateTime.current += delta * ANIM_SPEED;
         const t = Math.min(stateTime.current, 1);
         if (craneGroupRef.current) craneGroupRef.current.position.x = THREE.MathUtils.lerp(DROP_ZONE_X, 0, t);
-        if (vertGroupRef.current)  vertGroupRef.current.position.z  = THREE.MathUtils.lerp(DROP_ZONE_Z, 0, t);
+        if (vertGroupRef.current) vertGroupRef.current.position.z = THREE.MathUtils.lerp(DROP_ZONE_Z, 0, t);
         if (stateTime.current >= 1) {
           if (craneGroupRef.current) craneGroupRef.current.position.x = 0;
-          if (vertGroupRef.current)  vertGroupRef.current.position.z  = 0;
+          if (vertGroupRef.current) vertGroupRef.current.position.z = 0;
           setTriggerAnimation(false);
           animState.current = "cooldown";
         }
@@ -287,8 +294,9 @@ function ModelAssembly({ onAnimationComplete, triggerAnimation, setTriggerAnimat
           joystickPointerId.current = e.pointerId;
           dragStart.current = { x: e.clientX, y: e.clientY };
           joyAxis.current = null;
-          (e.target as Element & { setPointerCapture?: (id: number) => void })
-            ?.setPointerCapture?.(e.pointerId);
+          // Capture on the canvas element so pointermove keeps firing
+          // even when the pointer drifts outside the joystick mesh on touch.
+          try { gl.domElement.setPointerCapture(e.pointerId); } catch {/* noop */ }
         }}
       >
         <primitive object={clones["joystick"]} position={pivotOffsets.joystick.clone().negate()} />
@@ -334,13 +342,13 @@ function CameraRig() {
     done.current = true;
 
     const center = new THREE.Vector3();
-    const size   = new THREE.Vector3();
+    const size = new THREE.Vector3();
     box.getCenter(center);
     box.getSize(size);
 
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov    = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
-    const dist   = (maxDim / 2) / Math.tan(fov / 2) * 1.4;
+    const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
+    const dist = (maxDim / 2) / Math.tan(fov / 2) * 1.4;
 
     camera.position.set(center.x, center.y + size.y * 0.15, center.z + dist);
     camera.lookAt(center);
@@ -364,7 +372,7 @@ export default function ClawMachineViewer({
   onButtonClick,
 }: ViewerProps) {
   return (
-    <div style={{ width: "100%", height: "100%", minHeight: "400px" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <Canvas camera={{ position: [0, 2, 18], fov: 100 }}>
         <ambientLight intensity={0.7} />
         <directionalLight position={[5, 10, 5]} intensity={4.5} />
